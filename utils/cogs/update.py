@@ -21,7 +21,7 @@ class Update():
         self.buddy = Buddy(wiki, gui, page)
     
     def main(self):
-        self.content = ft.Container(self.spray.main(), expand=True)
+        self.content = ft.Container(self.playercard.main(), expand=True)
 
         def on_clicked(e):
             i = e.control.selected_index
@@ -41,7 +41,7 @@ class Update():
         return ft.Row(
             [
                 ft.NavigationRail(
-                    selected_index=1,
+                    selected_index=0,
                     label_type=ft.NavigationRailLabelType.ALL,
                     min_width=100,
                     min_extended_width=400,
