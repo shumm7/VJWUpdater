@@ -1,57 +1,7 @@
-import requests, os, shutil
+import requests, os
 from utils.misc import JSON, Log
 
 class API:
-    def check_version() -> bool:
-        url = 'https://valorant-api.com/v1/version'
-        Log.print(f"Fetching Valorant version: {url}", "info", "API")
-
-        resp = requests.get(url)
-        if resp.status_code == 200:
-            if not os.path.exists("api/version.json"):
-                raise FileNotFoundError()
-
-            legacy = JSON.read("api/version.json")
-            current = resp.json()['data']
-            if current['manifestId']==legacy['manifestId']:
-                return True
-            else:
-                return False
-        else:
-            raise Exception("Failed to checking version")
-        
-    def fetch_all():
-        os.makedirs(f"api/dict", exist_ok=True)
-        API.version()
-        API.agents()
-        API.buddies()
-        API.bundles()
-        API.competitivetiers()
-        API.contracts()
-        API.gear()
-        API.levelborders()
-        API.maps()
-        API.playercards()
-        API.playertitles()
-        API.seasons()
-        API.sprays()
-        API.weapons()
-        
-
-        v = JSON.read("api/version.json").get('manifestId', "None")
-        b = JSON.read("api/version.json").get('branch', "None")
-        os.makedirs(f"api/{b}", exist_ok=True)
-
-        filelist = []
-        for file in os.listdir("api"):
-            if os.path.splitext(file)[1]==".json":
-                filelist.append(file)
-        
-        for file in filelist:
-            shutil.copy(f'api/{file}', f'api/{b}/{file}')
-
-        Log.print(f"Fetch completed! Current version: {v}", "info", "API")
-
     def version():
         url = 'https://valorant-api.com/v1/version'
         Log.print(f"Fetching Valorant version: {url}", "info", "API")

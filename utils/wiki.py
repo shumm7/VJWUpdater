@@ -32,7 +32,6 @@ class Wiki():
         ret = self.session.get(url=self.url, params=LOGIN_TOKEN_PARAMS)
         data = ret.json()
         self.login_token = data['query']['tokens']['logintoken']
-        Log.append("ログイントークンの取得作業が完了しました: " + str(data))
         
         # LOGIN
         LOGIN_PARAMS = {
@@ -44,7 +43,9 @@ class Wiki():
         }
         ret = self.session.post(self.url, data=LOGIN_PARAMS)
         data = ret.json()
-        Log.append("Wikiへのログイン作業が完了しました: " + str(data))
+
+        if data.get("login", {}).get("result")!="Success":
+            raise Exception(data.get("login", {}).get("reason", "Login failed"))
 
         # CSRF TOKEN
         CSRF_PARAMS = {

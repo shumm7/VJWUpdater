@@ -4,3 +4,4 @@ log.txt
 
 *.pyc
 *.env
+config.json

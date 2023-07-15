@@ -1,8 +1,8 @@
-import os, json, datetime, re, tkinter
+import re
+import os, json, datetime, re
 import urllib.error
 import urllib.request
 import urllib.parse
-import requests
 
 class Log:
     def print(msg: str, _type: str, category: str, logging: bool = True):
@@ -49,7 +49,7 @@ class Log:
 
 class String:
     def wiki_format(string: str) -> str:
-        return string.replace("/", "").replace("?", "").replace(":", "").replace("#", "")
+        return re.sub('\s+', ' ', string.replace("/", "").replace("?", "").replace(":", "").replace("#", "").strip())
     
     def wiki_template(template: str, args: dict, div: str = "") -> str:
         ret: str = "{{" + template + div
@@ -227,4 +227,64 @@ class Misc:
         def remove_list_from_uuid(_list: list, uuid: str):
             return [i for i in _list if i["uuid"]!=uuid]
 
+class Config:
+    data = {
+        "lang": "ja-JP",
+        "api": "https://valorantjp.miraheze.org/w/api.php",
+        "theme": "system",
+        "logo": "assets/logo.png",
+        "wikibot": {
+            "id": "",
+            "password": ""
+        }
+    }
+
+    def read() -> dict:
+        if not os.path.exists("config.json"):
+            JSON.save("config.json", Config.data)
+
+        j = JSON.read("config.json")
+        ret = {}
+
+        for i in Config.data.keys():
+            ret[i] = j.get(i, Config.data[i])
+        return ret
+
+    def save(cfg: dict) -> None:
+        ret = {}
+        for i in Config.data.keys():
+            ret[i] = cfg.get(i, Config.data[i])
+            
+            JSON.save("config.json", ret)
     
+    def save_key(key:str, value:str):
+        ret = Config.read()
+
+        ret[key] = value
+        Config.save(ret)
+    
+    def read_key(key: str):
+        ret = Config.read()
+        return ret.get(key, Config.data.get("key", None))
+
+class Lang:
+    def get_current_language() -> str:
+        return Config.read()["lang"]
+    
+    def value(key: str, lang: str = None) -> str:
+        os.makedirs(f"lang", exist_ok=True)
+        if lang==None:
+            lang = Lang.get_current_language()
+
+        if os.path.exists(f"lang/{lang}.json"):
+            localize = JSON.read(f"lang/{lang}.json")
+            keys = key.split(".")
+
+            for k in keys:
+                localize = localize.get(k, f"{lang}.{key}")
+                if type(localize)==str:
+                    return localize
+
+            return f"{lang}.{key}"
+        else:
+            return f"{lang}.{key}"
