@@ -1,113 +1,15 @@
-import re
+import re, sys
 import os, json, datetime, re
 import urllib.error
 import urllib.request
 import urllib.parse
-
-class Log:
-    def print(msg: str, _type: str, category: str, logging: bool = True):
-        if category!=None:
-            if len(category)>0:
-                category = f"<{category}>"
-        else:
-            category = ""
-        
-        if _type=="info":
-            _type="INFO"
-        elif _type=="warn":
-            _type="WARN"
-        elif _type == "error":
-            _type="ERROR"
-        else:
-            _type = "UNKNOWN"
-
-        if type(msg)==type(""):
-            if logging:
-                with open("log.txt", "a", encoding="utf-8") as fp:
-                    fp.write(f'[{datetime.datetime.now()}][{_type}]{category} {msg}\n')
-
-                
-                print(f'[{datetime.datetime.now()}][{_type}]{category} {msg}')
-    
-    def append(msg: str):
-        if type(msg)==type(""):
-            with open("log.txt", "a", encoding="utf-8") as fp:
-                fp.write(f'[{datetime.datetime.now()}] {msg}\n')
-
-    def exception(e: Exception, msg: str = None, category: str = None):
-        if type(msg)!=type(""):
-            msg = "Unknown exception has occured."
-        if category!=None:
-            if len(category)>0:
-                category = f"<{category}>"
-        else:
-            category = ""
-        
-        Log.append(f'[{datetime.datetime.now()}][ERROR]{category} {msg}\n\tdetail: {e}')
-        Log.print(msg, "error", category, False)
-        
-
-class String:
-    def wiki_format(string: str) -> str:
-        return re.sub('\s+', ' ', string.replace("/", "").replace("?", "").replace(":", "").replace("#", "").strip())
-    
-    def wiki_template(template: str, args: dict, div: str = "") -> str:
-        ret: str = "{{" + template + div
-        for key,value in args.items():
-            ret += f"|{key}={value}{div}"
-        
-        ret += "}}"
-        return ret
-
-    def wiki_mklist(ls: list, div: str = "\n") -> str:
-        ret: str = ""
-
-        for v in ls:
-            if len(ret)!=0:
-                ret += div
-            ret += v
-        return ret
+from utils.tools.json import JSON
+from utils.tools.localize import Lang
 
 
 
-class JSON:
-    def __create__(filename: str, formats: dict) -> None:
-        """ Create a json file """
-        
-        file_path = filename
-        file_dir = os.path.dirname(file_path)
-        os.makedirs(file_dir, exist_ok=True)
-        if not os.path.exists(file_path):
-            with open(file_path, "w") as fp:
-                json.dump(formats, fp, indent=2)
 
 
-    def read(filename: str, force: bool = True) -> dict:
-        """Read json file"""
-        try:
-            with open(filename, "r", encoding='utf-8') as json_file:
-                data = json.load(json_file)
-        except FileNotFoundError:
-            if force:
-                JSON.__create__(filename, {})
-                return JSON.read(filename, False)
-        return data
-
-    def save(filename: str, data: dict) -> None:
-        """Save data to json file"""
-        try:
-            with open(filename, 'w', encoding='utf-8') as json_file:
-                json.dump(data, json_file, indent=2, ensure_ascii=False)
-        except FileNotFoundError:
-            JSON.__create__(filename, {})
-            return JSON.save(filename, data)
-
-class Fetch:
-    def download(url, dst_path):
-        with urllib.request.urlopen(url, timeout=10) as web_file:
-            data = web_file.read()
-            with open(dst_path, mode='wb') as local_file:
-                local_file.write(data)
 
 class ApiData:
     def agent_from_uuid(uuid: str) -> dict:
@@ -227,64 +129,3 @@ class Misc:
         def remove_list_from_uuid(_list: list, uuid: str):
             return [i for i in _list if i["uuid"]!=uuid]
 
-class Config:
-    data = {
-        "lang": "ja-JP",
-        "api": "https://valorantjp.miraheze.org/w/api.php",
-        "theme": "system",
-        "logo": "assets/logo.png",
-        "wikibot": {
-            "id": "",
-            "password": ""
-        }
-    }
-
-    def read() -> dict:
-        if not os.path.exists("config.json"):
-            JSON.save("config.json", Config.data)
-
-        j = JSON.read("config.json")
-        ret = {}
-
-        for i in Config.data.keys():
-            ret[i] = j.get(i, Config.data[i])
-        return ret
-
-    def save(cfg: dict) -> None:
-        ret = {}
-        for i in Config.data.keys():
-            ret[i] = cfg.get(i, Config.data[i])
-            
-            JSON.save("config.json", ret)
-    
-    def save_key(key:str, value:str):
-        ret = Config.read()
-
-        ret[key] = value
-        Config.save(ret)
-    
-    def read_key(key: str):
-        ret = Config.read()
-        return ret.get(key, Config.data.get("key", None))
-
-class Lang:
-    def get_current_language() -> str:
-        return Config.read()["lang"]
-    
-    def value(key: str, lang: str = None) -> str:
-        os.makedirs(f"lang", exist_ok=True)
-        if lang==None:
-            lang = Lang.get_current_language()
-
-        if os.path.exists(f"lang/{lang}.json"):
-            localize = JSON.read(f"lang/{lang}.json")
-            keys = key.split(".")
-
-            for k in keys:
-                localize = localize.get(k, f"{lang}.{key}")
-                if type(localize)==str:
-                    return localize
-
-            return f"{lang}.{key}"
-        else:
-            return f"{lang}.{key}"

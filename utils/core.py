@@ -1,16 +1,17 @@
 import os
 import flet as ft
-from utils.misc import JSON, Log, String, Fetch, Misc, ApiData, Config, Lang
-from utils.wiki import Wiki
-from utils.gui import Gui
+from utils.tools.config import Config
+from utils.tools.localize import Lang
+from utils.tools.wiki import Wiki
+from utils.tools.gui import Gui
 
 from utils.cogs.settings import Settings
 from utils.cogs.home import Home
 from utils.cogs.cache import Cache
 from utils.cogs.update import Update
-from utils.cogs.wikitext import Wikitext
-from utils.cogs.list import List
-from utils.cogs.esports import Esports
+#from utils.cogs.wikitext import Wikitext
+#from utils.cogs.list import List
+#from utils.cogs.esports import Esports
 
 class Core():
     page: ft.Page
@@ -19,9 +20,9 @@ class Core():
 
     cache: Cache
     update: Update
-    wikitext: Wikitext
-    list: List
-    esports: Esports
+    #wikitext: Wikitext
+    #list: List
+    #esports: Esports
 
     def __init__(self) -> None:
         ft.app(target=self.set_window)

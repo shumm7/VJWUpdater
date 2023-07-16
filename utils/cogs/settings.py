@@ -1,9 +1,11 @@
 import os, glob
 import flet as ft
 
-from utils.wiki import Wiki
-from utils.gui import Gui
-from utils.misc import JSON, Log, String, Fetch, Misc, ApiData, Config, Lang
+from utils.tools.localize import Lang
+from utils.tools.config import Config
+from utils.tools.assets import Assets
+from utils.tools.wiki import Wiki
+from utils.tools.gui import Gui
 
 class Settings():
     page: ft.Page
@@ -19,7 +21,7 @@ class Settings():
     def main(self):
         # 言語設定
         language_list = {}
-        for p in glob.glob('lang/*.json'):
+        for p in glob.glob(Assets.path('assets/lang')+"/*.json"):
             lang = os.path.splitext(os.path.basename(p))[0]
             language_list[lang] = Lang.value("name", lang) + f" ( {lang} )"
 
@@ -28,8 +30,10 @@ class Settings():
             language_options.append(ft.dropdown.Option(key=k, text=h))
         
         def language_selected(e):
-            Config.save_key("lang", language_dropdown.value)
-            self.gui.popup_notice(Lang.value("settings.lang.notice"))
+            current: str = Config.read_key("lang")
+            if current != language_dropdown.value:
+                Config.save_key("lang", language_dropdown.value)
+                self.gui.popup_notice(Lang.value("settings.lang.notice"))
 
         language_dropdown = ft.Dropdown(
             options=language_options,
@@ -117,11 +121,19 @@ class Settings():
 
         # ロゴ
         logo_src_field: ft.TextField = ft.TextField(label=Lang.value("settings.logo.src"), value=Config.read_key("logo"))
-        logo_image = ft.Image(src=logo_src_field.value, fit=ft.ImageFit.CONTAIN)
+        logo_image = ft.Image(fit=ft.ImageFit.CONTAIN)
+
+        if len(logo_src_field.value) == 0:
+            logo_image.src = Assets.path(f"assets/logo.png")
+        else:
+            logo_image.src = logo_src_field.value
 
         def logo_changed(e):
             Config.save_key("logo", logo_src_field.value)
-            logo_image.src = logo_src_field.value
+            if len(logo_src_field.value) == 0:
+                logo_image.src = Assets.path(f"assets/logo.png")
+            else:
+                logo_image.src = logo_src_field.value
             try:
                 logo_image.update()
             except Exception as e:
@@ -158,7 +170,7 @@ class Settings():
                                                 icon=ft.icons.WARNING_AMBER,
                                                 icon_color="yellow400",
                                                 icon_size=20,
-                                                tooltip=Lang.value("settings.lang.warning"),
+                                                tooltip=Lang.value("settings.lang.notice"),
                                             ),
                                             language_dropdown
                                         ]
@@ -250,10 +262,18 @@ class Settings():
                                 ft.Container(
                                     padding=10,
                                     content=ft.Row(
-                                        alignment=ft.MainAxisAlignment.START, 
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN, 
                                         controls=[
-                                            ft.Icon(name=ft.icons.IMAGE),
-                                            ft.Text(Lang.value("settings.logo.title"), style=ft.TextThemeStyle.BODY_MEDIUM),
+                                            ft.Row([
+                                                ft.Icon(name=ft.icons.IMAGE),
+                                                ft.Text(Lang.value("settings.logo.title"), style=ft.TextThemeStyle.BODY_MEDIUM)
+                                            ]),
+                                            ft.Row([
+                                                ft.IconButton(
+                                                    icon=ft.icons.HELP,
+                                                    tooltip=Lang.value("settings.logo.notice"),
+                                                ),
+                                            ])
                                         ]
                                     ),
                                 ),

@@ -1,9 +1,10 @@
 import flet as ft
 import os, requests, shutil
-from utils.misc import JSON, Log, String, Fetch, Misc, ApiData, Config, Lang
-from utils.api import API
-from utils.wiki import Wiki
-from utils.gui import Gui
+from utils.tools.json import JSON
+from utils.tools.localize import Lang
+from utils.tools.api import API
+from utils.tools.wiki import Wiki
+from utils.tools.gui import Gui
 
 class Cache():
     page: ft.Page

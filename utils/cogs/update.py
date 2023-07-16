@@ -1,9 +1,10 @@
 import flet as ft
 import os
-from utils.misc import JSON, Log, String, Fetch, Misc, ApiData, Lang, Config
-from utils.api import API
-from utils.wiki import Wiki
-from utils.gui import Gui
+from utils.tools.localize import Lang
+from utils.tools.json import JSON
+from utils.tools.fetch import Fetch
+from utils.tools.wiki import Wiki, WikiString
+from utils.tools.gui import Gui
 
 
 class Update():
@@ -125,7 +126,6 @@ class PlayerCard():
             else:
                 self.switch_force.label = Lang.value("contents.update.common.toggle_force_off")
 
-            self.switch_force.update()
             try:
                 self.switch_force.update()
             except Exception as e:
@@ -137,7 +137,6 @@ class PlayerCard():
             else:
                 self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_off")
 
-            self.switch_upload.update()
             try:
                 self.switch_upload.update()
             except Exception as e:
@@ -203,7 +202,7 @@ class PlayerCard():
                             elif type=="small" and value.get(f"smallArt")==None:
                                 icon = value.get("displayIcon")
                             if icon==None:
-                                self.add_item(value, "warn", filename, Lang.value("contents.update.playercard.warn_notfound"), type)
+                                self.add_item(value, "warn", filename, Lang.value("common.warn"), type, Lang.value("contents.update.playercard.warn_notfound"))
                                 result["warn"] += 1
                                 continue
                             
@@ -221,7 +220,7 @@ class PlayerCard():
                                 result["skipped"] += 1
 
                         except Exception as e:
-                            self.add_item(value, "error", filename, Lang.value("common.error"), type)
+                            self.add_item(value, "error", filename, Lang.value("common.error"), type, str(e))
                             self.gui.popup_error(Lang.value("contents.update.playercard.failed"), str(e))
                             result["error"] += 1
                 
@@ -292,7 +291,6 @@ class PlayerCard():
 
     def clear_list(self):
         self.lists.controls.clear()
-        self.lists.update()
         try:
             self.lists.update()
         except Exception as e:
@@ -300,7 +298,6 @@ class PlayerCard():
     
     def append_list(self, ctrl: ft.Control):
         self.lists.controls.append(ctrl)
-        self.lists.update()
         try:
             self.lists.update()
         except Exception as e:
@@ -326,7 +323,7 @@ class PlayerCard():
         except Exception as e:
             pass
 
-    def add_item(self, value: dict, mode: str, filename: str, reason: str, type: str):
+    def add_item(self, value: dict, mode: str, filename: str, reason: str, type: str, description: str = None):
         def close_dialog(e):
             dialog.open = False
             try:
@@ -358,12 +355,22 @@ class PlayerCard():
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
+        iconbutton: ft.IconButton
         imagebutton = ft.IconButton(
             icon=ft.icons.PREVIEW,
             tooltip=Lang.value("common.preview"),
             on_click = open_dialog
         ) 
-        iconbutton: ft.IconButton
+        buttons = ft.Row([imagebutton])
+        if type(description)==str:
+            buttons.controls.insert(
+                0,
+                ft.IconButton(
+                    icon=ft.icons.HELP,
+                    tooltip=Lang.value("common.detail"),
+                    on_click=lambda e: self.gui.dialog_ok(ft.Text(reason), ft.Text(description, style=ft.TextThemeStyle.BODY_MEDIUM))
+                )
+            )
 
         if mode=="success":
             iconbutton = ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=reason)
@@ -384,7 +391,7 @@ class PlayerCard():
                                     iconbutton,
                                     ft.Text(value.get("displayName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM)
                                 ]),
-                                imagebutton
+                                buttons
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
@@ -404,7 +411,7 @@ class PlayerCard():
         if name==None:
             raise Exception("Failed to get item's name.")
         
-        name = String.wiki_format(name)
+        name = WikiString.wiki_format(name)
 
         if type=="small":
             return f"{name} icon.png"
@@ -439,7 +446,6 @@ class Spray():
             else:
                 self.switch_force.label = Lang.value("contents.update.common.toggle_force_off")
 
-            self.switch_force.update()
             try:
                 self.switch_force.update()
             except Exception as e:
@@ -451,7 +457,6 @@ class Spray():
             else:
                 self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_off")
 
-            self.switch_upload.update()
             try:
                 self.switch_upload.update()
             except Exception as e:
@@ -514,7 +519,7 @@ class Spray():
                         elif value.get("fullIcon")!=None:
                             icon = value.get("fullIcon")
                         if icon==None:
-                            self.add_item(value, "warn", filename, Lang.value("contents.update.spray.warn_notfound"))
+                            self.add_item(value, "warn", filename, Lang.value("common.warn"), Lang.value("contents.update.spray.warn_notfound"))
                             result["warn"] += 1
                             continue
                         
@@ -532,7 +537,7 @@ class Spray():
                             result["skipped"] += 1
 
                     except Exception as e:
-                        self.add_item(value, "error", filename, Lang.value("common.error"))
+                        self.add_item(value, "error", filename, Lang.value("common.error"), str(e))
                         self.gui.popup_error(Lang.value("contents.update.spray.failed"), str(e))
                         result["error"] += 1
                 
@@ -603,7 +608,6 @@ class Spray():
 
     def clear_list(self):
         self.lists.controls.clear()
-        self.lists.update()
         try:
             self.lists.update()
         except Exception as e:
@@ -611,7 +615,6 @@ class Spray():
     
     def append_list(self, ctrl: ft.Control):
         self.lists.controls.append(ctrl)
-        self.lists.update()
         try:
             self.lists.update()
         except Exception as e:
@@ -637,7 +640,7 @@ class Spray():
         except Exception as e:
             pass
 
-    def add_item(self, value: dict, mode: str, filename: str, reason: str):
+    def add_item(self, value: dict, mode: str, filename: str, reason: str, description: str = None):
         def close_dialog(e):
             dialog.open = False
             try:
@@ -669,12 +672,22 @@ class Spray():
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
+        iconbutton: ft.IconButton
         imagebutton = ft.IconButton(
             icon=ft.icons.PREVIEW,
             tooltip=Lang.value("common.preview"),
             on_click = open_dialog
-        ) 
-        iconbutton: ft.IconButton
+        )
+        buttons = ft.Row([imagebutton])
+        if type(description)==str:
+            buttons.controls.insert(
+                0,
+                ft.IconButton(
+                    icon=ft.icons.HELP,
+                    tooltip=Lang.value("common.detail"),
+                    on_click=lambda e: self.gui.dialog_ok(ft.Text(reason), ft.Text(description, style=ft.TextThemeStyle.BODY_MEDIUM))
+                )
+            )
 
         if mode=="success":
             iconbutton = ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=reason)
@@ -695,7 +708,7 @@ class Spray():
                                     iconbutton,
                                     ft.Text(value.get("displayName", {}).get(Lang.value("common.localize")) or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM)
                                 ]),
-                                imagebutton
+                                buttons
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
@@ -722,7 +735,7 @@ class Spray():
         elif uuid == "a8765b06-4131-5be0-575a-e288cfa904a8": # Love > Hate Spray
             name = "Love ＞ Hate Spray"
         
-        name = String.wiki_format(name)
+        name = WikiString.wiki_format(name)
         return f"{name}.png"
 
 class Buddy():
@@ -751,7 +764,6 @@ class Buddy():
             else:
                 self.switch_force.label = Lang.value("contents.update.common.toggle_force_off")
 
-            self.switch_force.update()
             try:
                 self.switch_force.update()
             except Exception as e:
@@ -763,7 +775,6 @@ class Buddy():
             else:
                 self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_off")
 
-            self.switch_upload.update()
             try:
                 self.switch_upload.update()
             except Exception as e:
@@ -822,7 +833,7 @@ class Buddy():
                         if value.get("displayIcon")!=None:
                             icon = value.get("displayIcon")
                         if icon==None:
-                            self.add_item(value, "warn", filename, Lang.value("contents.update.buddy.warn_notfound"))
+                            self.add_item(value, "warn", filename, Lang.value("common.warn"), Lang.value("contents.update.buddy.warn_notfound"))
                             result["warn"] += 1
                             continue
                         
@@ -840,7 +851,7 @@ class Buddy():
                             result["skipped"] += 1
 
                     except Exception as e:
-                        self.add_item(value, "error", filename, Lang.value("common.error"))
+                        self.add_item(value, "error", filename, Lang.value("common.error"), str(e))
                         self.gui.popup_error(Lang.value("contents.update.buddy.failed"), str(e))
                         result["error"] += 1
                 
@@ -911,7 +922,6 @@ class Buddy():
 
     def clear_list(self):
         self.lists.controls.clear()
-        self.lists.update()
         try:
             self.lists.update()
         except Exception as e:
@@ -919,7 +929,6 @@ class Buddy():
     
     def append_list(self, ctrl: ft.Control):
         self.lists.controls.append(ctrl)
-        self.lists.update()
         try:
             self.lists.update()
         except Exception as e:
@@ -945,7 +954,7 @@ class Buddy():
         except Exception as e:
             pass
 
-    def add_item(self, value: dict, mode: str, filename: str, reason: str):
+    def add_item(self, value: dict, mode: str, filename: str, reason: str, description: str = None):
         def close_dialog(e):
             dialog.open = False
             try:
@@ -977,12 +986,22 @@ class Buddy():
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
+        iconbutton: ft.IconButton
         imagebutton = ft.IconButton(
             icon=ft.icons.PREVIEW,
             tooltip=Lang.value("common.preview"),
             on_click = open_dialog
-        ) 
-        iconbutton: ft.IconButton
+        )
+        buttons = ft.Row([imagebutton])
+        if type(description)==str:
+            buttons.controls.insert(
+                0,
+                ft.IconButton(
+                    icon=ft.icons.HELP,
+                    tooltip=Lang.value("common.detail"),
+                    on_click=lambda e: self.gui.dialog_ok(ft.Text(reason), ft.Text(description, style=ft.TextThemeStyle.BODY_MEDIUM))
+                )
+            )
 
         if mode=="success":
             iconbutton = ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=reason)
@@ -1003,7 +1022,7 @@ class Buddy():
                                     iconbutton,
                                     ft.Text(value.get("displayName", {}).get(Lang.value("common.localize")) or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM)
                                 ]),
-                                imagebutton
+                                buttons
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
@@ -1023,7 +1042,7 @@ class Buddy():
         if name==None:
             raise Exception("Failed to get item's name.")
         
-        name = String.wiki_format(name)
+        name = WikiString.wiki_format(name)
         return f"{name}.png"
 
 

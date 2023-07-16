@@ -1,7 +1,9 @@
 import flet as ft
-from utils.wiki import Wiki
-from utils.gui import Gui
-from utils.misc import JSON, Log, String, Fetch, Misc, ApiData, Config, Lang
+from utils.tools.config import Config
+from utils.tools.localize import Lang
+from utils.tools.assets import Assets
+from utils.tools.wiki import Wiki
+from utils.tools.gui import Gui
 
 class Home():
     page: ft.Page
@@ -15,6 +17,10 @@ class Home():
         self.gui = gui
     
     def main(self):
+        img_src: str = Config.read_key("logo")
+        if len(img_src) == 0:
+            img_src = Assets.path("assets/logo.png")
+
         card = ft.Card(
             content=ft.Container(
                 width=500,
@@ -25,7 +31,7 @@ class Home():
                             controls=[
                                 ft.Container(
                                     content=ft.Image(
-                                        src=Config.read_key("logo"),
+                                        src=img_src,
                                         fit=ft.ImageFit.CONTAIN,
                                     ),
                                     height=200,

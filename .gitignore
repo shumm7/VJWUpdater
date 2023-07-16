@@ -1,7 +1,9 @@
 log.txt
 /api
 /output
+/build
 
 *.pyc
 *.env
+*.spec
 config.json

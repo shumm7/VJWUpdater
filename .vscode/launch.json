@@ -5,10 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "テスト実行",
             "type": "python",
             "request": "launch",
             "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "ビルド",
+            "type": "python",
+            "request": "launch",
+            "program": "build.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }
