@@ -93,10 +93,6 @@ class API:
 
         JSON.save("api/dict/bundles.json", bundles)
                     
-
-    
-    
-    
     def competitivetiers():
         url = 'https://valorant-api.com/v1/competitivetiers?language=all'
 
@@ -114,6 +110,33 @@ class API:
             JSON.save("api/contracts.json", resp.json()['data'])
         else:
             raise Exception("Failed to fetching: api/contracts.json")
+    
+    def currencies():
+        url = 'https://valorant-api.com/v1/currencies?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            JSON.save("api/currencies.json", resp.json()['data'])
+        else:
+            raise Exception("Failed to fetching: api/currencies.json")
+    
+    def events():
+        url = 'https://valorant-api.com/v1/events?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            JSON.save("api/events.json", resp.json()['data'])
+        else:
+            raise Exception("Failed to fetching: api/events.json")
+    
+    def gamemodes():
+        url = 'https://valorant-api.com/v1/gamemodes?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            JSON.save("api/gamemodes.json", resp.json()['data'])
+        else:
+            raise Exception("Failed to fetching: api/gamemodes.json")
     
     def gear():
         url = 'https://valorant-api.com/v1/gear?language=all'
@@ -186,3 +209,54 @@ class API:
             JSON.save("api/weapons.json", resp.json()['data'])
         else:
             raise Exception("Failed to fetching: api/weapons.json")
+     
+        
+    def agent_by_uuid(uuid: str) -> dict:
+        agents = JSON.read("api/agents.json")
+
+        for agent in agents:
+            if agent["uuid"] == uuid:
+                return agent
+        return None
+
+    def buddy_by_uuid(uuid: str) -> dict:
+        buddies = JSON.read("api/buddies.json")
+
+        for buddy in buddies:
+            if buddy["uuid"]==uuid:
+                return buddy
+        return None
+
+    def buddy_by_charmlevel_uuid(uuid: str) -> dict:
+        buddies = JSON.read("api/buddies.json")
+
+        for buddy in buddies:
+            for level in buddy["levels"]:
+                if level["uuid"]==uuid:
+                    return buddy
+        return None
+    
+    def spray_by_uuid(uuid: str) -> dict:
+        sprays = JSON.read("api/sprays.json")
+
+        for spray in sprays:
+            if spray["uuid"]==uuid:
+                return spray
+        return None
+
+    def playercard_by_uuid(uuid: str) -> dict:
+        playercards = JSON.read("api/playercards.json")
+
+        for playercard in playercards:
+            if playercard["uuid"]==uuid:
+                return playercard
+        return None
+
+    def playertitle_by_uuid(uuid: str) -> dict:
+        playertitles = JSON.read("api/playertitles.json")
+
+        for playertitle in playertitles:
+            if playertitle["uuid"]==uuid:
+                return playertitle
+        return None
+    

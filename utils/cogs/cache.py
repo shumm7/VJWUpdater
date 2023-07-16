@@ -80,18 +80,14 @@ class VersionCheck():
         self.gui = gui
 
         self.legacy = JSON.read("api/version.json")
-        self.message = ft.Container(padding=10)
-        self.loading = ft.Container()
+        self.result = self.gui.Result(self.page)
+        self.loading = self.gui.ProgressRing(self.page)
         self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
         self.datacells = [ft.Text(self.legacy.get("manifestId", "")), ft.Text(self.legacy.get("branch", "")), ft.Text(self.legacy.get("version", ""))]
 
     def main(self):
         def on_clicked(e):
-            self.loading.content = ft.ProgressRing(width=16, height=16, stroke_width = 2)
-            try:
-                self.loading.update()
-            except Exception as e:
-                pass
+            self.loading.state(True)
 
             try:
                 self.update_state(Lang.value("contents.cache.check.fetch"))
@@ -112,21 +108,9 @@ class VersionCheck():
                 
                 self.update_state(Lang.value("contents.cache.check.check"))
                 if result:
-                    self.message.content = ft.ListTile(
-                        leading=ft.Icon(name=ft.icons.CHECK, color="green"),
-                        title=ft.Text(Lang.value("contents.cache.check.result_latest"), style=ft.TextThemeStyle.BODY_MEDIUM),
-                        subtitle=ft.Text(Lang.value("contents.cache.check.result_latest_message"), style=ft.TextThemeStyle.BODY_SMALL),
-                    )
+                    self.result.success(Lang.value("contents.cache.check.result_latest"), Lang.value("contents.cache.check.result_latest_message"))
                 else:
-                    self.message.content = ft.ListTile(
-                        leading=ft.Icon(name=ft.icons.ERROR_OUTLINE, color="red"),
-                        title=ft.Text(Lang.value("contents.cache.check.result_outdated"), style=ft.TextThemeStyle.BODY_MEDIUM),
-                        subtitle=ft.Text(Lang.value("contents.cache.check.result_outdated_message"), style=ft.TextThemeStyle.BODY_SMALL),
-                    )
-                try:
-                    self.message.update()
-                except Exception as e:
-                    pass
+                    self.result.warn(Lang.value("contents.cache.check.result_outdated"), Lang.value("contents.cache.check.result_outdated_message"))
                 self.gui.popup_success(Lang.value("contents.cache.check.success"))
 
             except FileNotFoundError as e:
@@ -136,13 +120,7 @@ class VersionCheck():
                 self.gui.popup_error(Lang.value("contents.cache.check.failed"), str(e))
 
             finally:
-                self.loading.content = None
-                try:
-                    self.loading.update()
-                except Exception as e:
-                    pass
-                self.update_state("")
-                self.update_datacells()
+                self.loading.state(False)
 
         return ft.Column(
             [
@@ -179,12 +157,12 @@ class VersionCheck():
                             ),
                             padding=10
                         ),
-                        self.loading,
+                        self.loading.main(),
                         self.state
                     ],
                 ),
                 
-                self.message
+                self.result.main()
             ],
             spacing=0
         )
@@ -214,33 +192,30 @@ class FetchAll():
         self.page = page
         self.gui = gui
 
-        self.message = ft.Container(padding=10)
-        self.loading = ft.Container()
+        self.result = self.gui.Result(self.page)
+        self.loading = self.gui.ProgressRing(self.page)
         self.legacy = JSON.read("api/version.json")
         self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
         self.datacells = [ft.Text(self.legacy.get("manifestId", "")), ft.Text(self.legacy.get("branch", "")), ft.Text(self.legacy.get("version", ""))]
     
     def main(self):
         def on_clicked(e):
-            self.loading.content = ft.ProgressRing(width=16, height=16, stroke_width = 2)
-            try:
-                self.loading.update()
-            except Exception as e:
-                pass
+            self.loading.state(True)
 
             try:
                 self.fetch()
             except Exception as e:
+                self.update_state("")
+                self.update_datacells()
+                self.loading.state(False)
                 self.gui.popup_error(Lang.value("contents.cache.fetch.failed"), str(e))
+                self.result.error(Lang.value("contents.cache.fetch.failed"))
+                return
             
-            self.loading.content = None
-            try:
-                self.loading.update()
-            except Exception as e:
-                pass
-
             self.update_state("")
             self.update_datacells()
+            self.loading.state(False)
+            self.result.success(Lang.value("contents.cache.fetch.success"))
             self.gui.popup_success(Lang.value("contents.cache.fetch.success"))
 
         return ft.Column(
@@ -279,12 +254,12 @@ class FetchAll():
                             ),
                             padding=10
                         ),
-                        self.loading,
+                        self.loading.main(),
                         self.state
                     ],
                 ),
                 
-                self.message
+                self.result.main()
             ],
             spacing=0
         )
@@ -328,6 +303,15 @@ class FetchAll():
         
         self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.contract")))
         API.contracts()
+        
+        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.currency")))
+        API.currencies()
+
+        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.event")))
+        API.events()
+
+        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.gamemode")))
+        API.gamemodes()
         
         self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.gear")))
         API.gear()

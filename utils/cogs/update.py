@@ -20,6 +20,7 @@ class Update():
         self.playercard = PlayerCard(wiki, gui, page)
         self.spray = Spray(wiki, gui, page)
         self.buddy = Buddy(wiki, gui, page)
+        self.competitivetier = Competitivetier(wiki, gui, page)
     
     def main(self):
         self.content = ft.Container(self.playercard.main(), expand=True)
@@ -33,6 +34,8 @@ class Update():
                 self.content.content = self.spray.main()
             elif i==2:
                 self.content.content = self.buddy.main()
+            elif i==3:
+                self.content.content = self.competitivetier.main()
             try:
                 self.content.update()
             except Exception as e:
@@ -102,9 +105,9 @@ class Update():
 
 class PlayerCard():
     page: ft.Page
-    loading: ft.Container
+    loading: Gui.ProgressRing
     state: ft.Text
-    lists: ft.ListView
+    lists: Gui.UpdateResult
     switch_force: ft.Switch
     switch_upload: ft.Switch
 
@@ -113,10 +116,10 @@ class PlayerCard():
         self.page = page
         self.gui = gui
         
-        self.loading = ft.Container()
+        self.loading = self.gui.ProgressRing(self.page)
         self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
-        self.result = ft.ListTile()
-        self.lists = ft.ListView(expand=1, spacing=10, padding=20, auto_scroll=True)
+        self.result = self.gui.Result(self.page)
+        self.lists = self.gui.UpdateResult(self.page, "output/playercards")
         self.switch_force = ft.Switch(label=Lang.value("contents.update.common.toggle_force_off"), value=False)
         self.switch_upload = ft.Switch(label=Lang.value("contents.update.common.toggle_upload_on"), value=True)
 
@@ -150,14 +153,10 @@ class PlayerCard():
         def on_clicked(e):
             result = {"skipped": 0, "success": 0, "warn": 0, "error": 0}
             try:
-                self.clear_list()
-                self.clear_result()
+                self.lists.clear()
+                self.result.clear()
                 self.update_state(Lang.value("contents.update.playercard.begin"))
-                self.loading.content = ft.ProgressRing(width=16, height=16, stroke_width = 2)
-                try:
-                    self.loading.update()
-                except Exception as e:
-                    pass
+                self.loading.state(True)
 
                 os.makedirs("output/playercards", exist_ok=True)
                 os.makedirs("output/playercards/wide", exist_ok=True)
@@ -202,7 +201,7 @@ class PlayerCard():
                             elif type=="small" and value.get(f"smallArt")==None:
                                 icon = value.get("displayIcon")
                             if icon==None:
-                                self.add_item(value, "warn", filename, Lang.value("common.warn"), type, Lang.value("contents.update.playercard.warn_notfound"))
+                                self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", filename, f"output/playercards/{type}/{filename}", "warn", Lang.value("common.warn"), Lang.value("contents.update.playercard.warn_notfound"))
                                 result["warn"] += 1
                                 continue
                             
@@ -214,31 +213,26 @@ class PlayerCard():
                             if (not exist) and login:
                                 fd = filename.replace(" ", "_")
                                 self.wiki.upload(fd, Lang.value(f"contents.update.playercard.wiki_description.{type}"), f"output/playercards/{type}/{filename}")
-                                self.add_item(value, "success", filename, Lang.value("common.success"), type)
+                                self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", filename, f"output/playercards/{type}/{filename}", "success", Lang.value("common.success"))
+                                
                                 result["success"] += 1
                             else:
+                                self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")) or "", filename, f"output/playercards/{type}/{filename}", "skipped", Lang.value("common.skipped"))
                                 result["skipped"] += 1
 
                         except Exception as e:
-                            self.add_item(value, "error", filename, Lang.value("common.error"), type, str(e))
-                            self.gui.popup_error(Lang.value("contents.update.playercard.failed"), str(e))
+                            self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", filename, f"output/playercards/{type}/{filename}", "error", Lang.value("common.error"), str(e))
                             result["error"] += 1
                 
-                self.update_result(
-                    Lang.value("contents.update.playercard.success"), 
-                    Lang.value("contents.update.playercard.result").format(skipped=result["skipped"], success=result["success"], warn=result["warn"], error=result["error"])
-                )
+                self.result.success(Lang.value("contents.update.playercard.success"), Lang.value("contents.update.playercard.result").format(skipped=result["skipped"], success=result["success"], warn=result["warn"], error=result["error"]))
                 self.gui.popup_success(Lang.value("contents.update.playercard.success"))
 
             except Exception as e:
+                self.result.error(Lang.value("contents.update.playercard.failed"))
                 self.gui.popup_error(Lang.value("contents.update.playercard.failed"), str(e))
 
             finally:
-                self.loading.content = None
-                try:
-                    self.loading.update()
-                except Exception as e:
-                    pass
+                self.loading.state(False)
                 self.update_state("")
     
         return ft.Column(
@@ -252,7 +246,7 @@ class PlayerCard():
                 ft.Container(
                     ft.Column([
                         self.switch_upload,
-                        self.switch_force
+                        self.switch_force,
                     ])
                 ),
                 ft.Container(height=30),
@@ -267,17 +261,17 @@ class PlayerCard():
                             ),
                             padding=10
                         ),
-                        self.loading,
+                        self.loading.main(),
                         self.state
                     ],
                 ),
                 ft.Container(
-                    content=self.lists,
+                    content=self.lists.main(),
                     padding=10,
                     height=200
                 ),
 
-                self.result
+                self.result.main()
             ],
             spacing=0
         )
@@ -289,121 +283,6 @@ class PlayerCard():
         except Exception:
             pass
 
-    def clear_list(self):
-        self.lists.controls.clear()
-        try:
-            self.lists.update()
-        except Exception as e:
-            pass
-    
-    def append_list(self, ctrl: ft.Control):
-        self.lists.controls.append(ctrl)
-        try:
-            self.lists.update()
-        except Exception as e:
-            pass
-    
-    def clear_result(self):
-        self.result.title = None
-        self.result.subtitle = None
-        self.result.leading = None
-
-        try:
-            self.result.update()
-        except Exception as e:
-            pass
-
-    def update_result(self, title: str, subtitle: str):
-        self.result.title = ft.Text(title, style=ft.TextThemeStyle.BODY_MEDIUM, weight=ft.FontWeight.BOLD)
-        self.result.subtitle = ft.Text(subtitle, style=ft.TextThemeStyle.BODY_SMALL)
-        self.result.leading = ft.Icon(ft.icons.CHECK, color="green")
-
-        try:
-            self.result.update()
-        except Exception as e:
-            pass
-
-    def add_item(self, value: dict, mode: str, filename: str, reason: str, type: str, description: str = None):
-        def close_dialog(e):
-            dialog.open = False
-            try:
-                self.page.update()
-            except Exception as e:
-                pass
-
-        def open_dialog(e):
-            self.page.dialog = dialog
-            dialog.open = True
-            try:
-                self.page.update()
-            except Exception as e:
-                pass
-        
-        dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text(filename),
-            content=ft.Column([
-                ft.Text(value.get("displayName", {}).get(Lang.value("common.localize")) or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM),
-                ft.Row([
-                    ft.Text(value.get("uuid", ""), style=ft.TextThemeStyle.BODY_SMALL),
-                    self.gui.copy_button(value.get("uuid", ""))
-                ]),
-                ft.Image(src=f"output/playercards/{type}/{filename}", width=200, height=200, fit=ft.ImageFit.CONTAIN)
-            ]),
-            actions=[
-                ft.TextButton(Lang.value("common.ok"), on_click=close_dialog),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        iconbutton: ft.IconButton
-        imagebutton = ft.IconButton(
-            icon=ft.icons.PREVIEW,
-            tooltip=Lang.value("common.preview"),
-            on_click = open_dialog
-        ) 
-        buttons = ft.Row([imagebutton])
-        if type(description)==str:
-            buttons.controls.insert(
-                0,
-                ft.IconButton(
-                    icon=ft.icons.HELP,
-                    tooltip=Lang.value("common.detail"),
-                    on_click=lambda e: self.gui.dialog_ok(ft.Text(reason), ft.Text(description, style=ft.TextThemeStyle.BODY_MEDIUM))
-                )
-            )
-
-        if mode=="success":
-            iconbutton = ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=reason)
-        elif mode=="skipped":
-            iconbutton = ft.IconButton(icon=ft.icons.NEARBY_ERROR, icon_color="yellow", tooltip=reason)
-        elif mode=="warn":
-            iconbutton = ft.IconButton(icon=ft.icons.WARNING, icon_color="yellow", tooltip=reason)
-        elif mode=="error":
-            iconbutton = ft.IconButton(icon=ft.icons.ERROR, icon_color="red", tooltip=reason)
-
-        self.append_list(
-            ft.Card(
-                ft.Container(
-                    ft.Column([
-                        ft.Row(
-                            controls=[
-                                ft.Row([
-                                    iconbutton,
-                                    ft.Text(value.get("displayName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM)
-                                ]),
-                                buttons
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                        ),
-                        ft.Row([
-                            ft.Text(filename, style=ft.TextThemeStyle.BODY_SMALL)
-                        ])
-                    ]),
-                    padding=3
-                )
-            )
-        )    
-        
     def get_filename(self, data: dict, type: str) -> str:
         name = data.get("displayName", {})["en-US"]
         uuid = data.get("uuid")
@@ -422,9 +301,9 @@ class PlayerCard():
 
 class Spray():
     page: ft.Page
-    loading: ft.Container
+    loading: Gui.ProgressRing
     state: ft.Text
-    lists: ft.ListView
+    lists: Gui.UpdateResult
     switch_force: ft.Switch
     switch_upload: ft.Switch
 
@@ -433,10 +312,10 @@ class Spray():
         self.page = page
         self.gui = gui
         
-        self.loading = ft.Container()
+        self.loading = self.gui.ProgressRing(self.page)
         self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
-        self.result = ft.ListTile()
-        self.lists = ft.ListView(expand=1, spacing=10, padding=20, auto_scroll=True)
+        self.result = self.gui.Result(self.page)
+        self.lists = self.gui.UpdateResult(self.page, "output/sprays")
         self.switch_force = ft.Switch(label=Lang.value("contents.update.common.toggle_force_off"), value=False)
         self.switch_upload = ft.Switch(label=Lang.value("contents.update.common.toggle_upload_on"), value=True)
 
@@ -470,14 +349,10 @@ class Spray():
         def on_clicked(e):
             result = {"skipped": 0, "success": 0, "warn": 0, "error": 0}
             try:
-                self.clear_list()
-                self.clear_result()
+                self.lists.clear()
+                self.result.clear()
                 self.update_state(Lang.value("contents.update.spray.begin"))
-                self.loading.content = ft.ProgressRing(width=16, height=16, stroke_width = 2)
-                try:
-                    self.loading.update()
-                except Exception as e:
-                    pass
+                self.loading.state(True)
 
                 os.makedirs("output/sprays", exist_ok=True)
                 data = JSON.read("api/sprays.json")
@@ -519,7 +394,7 @@ class Spray():
                         elif value.get("fullIcon")!=None:
                             icon = value.get("fullIcon")
                         if icon==None:
-                            self.add_item(value, "warn", filename, Lang.value("common.warn"), Lang.value("contents.update.spray.warn_notfound"))
+                            self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")) or "", filename, f"output/sprays/{filename}", "warn", Lang.value("common.warn"), Lang.value("contents.update.spray.warn_notfound"))
                             result["warn"] += 1
                             continue
                         
@@ -531,31 +406,25 @@ class Spray():
                         if (not exist) and login:
                             fd = filename.replace(" ", "_")
                             self.wiki.upload(fd, Lang.value("contents.update.spray.wiki_description"), f"output/sprays/{filename}")
-                            self.add_item(value, "success", filename, Lang.value("common.success"))
+                            self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")) or "", filename, f"output/sprays/{filename}", "success", Lang.value("common.success"))
                             result["success"] += 1
                         else:
+                            self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")) or "", filename, f"output/sprays/{filename}", "skipped", Lang.value("common.skipped"))
                             result["skipped"] += 1
 
                     except Exception as e:
-                        self.add_item(value, "error", filename, Lang.value("common.error"), str(e))
-                        self.gui.popup_error(Lang.value("contents.update.spray.failed"), str(e))
+                        self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")) or "", filename, f"output/sprays/{filename}", "error", Lang.value("common.error"), str(e))
                         result["error"] += 1
                 
-                self.update_result(
-                    Lang.value("contents.update.spray.success"), 
-                    Lang.value("contents.update.spray.result").format(skipped=result["skipped"], success=result["success"], warn=result["warn"], error=result["error"])
-                )
+                self.result.success(Lang.value("contents.update.spray.success"), Lang.value("contents.update.spray.result").format(skipped=result["skipped"], success=result["success"], warn=result["warn"], error=result["error"]))
                 self.gui.popup_success(Lang.value("contents.update.spray.success"))
 
             except Exception as e:
+                self.result.error(Lang.value("contents.update.spray.failed"))
                 self.gui.popup_error(Lang.value("contents.update.spray.failed"), str(e))
 
             finally:
-                self.loading.content = None
-                try:
-                    self.loading.update()
-                except Exception as e:
-                    pass
+                self.loading.state(False)
                 self.update_state("")
     
         return ft.Column(
@@ -584,17 +453,17 @@ class Spray():
                             ),
                             padding=10
                         ),
-                        self.loading,
+                        self.loading.main(),
                         self.state
                     ],
                 ),
                 ft.Container(
-                    content=self.lists,
+                    content=self.lists.main(),
                     padding=10,
                     height=200
                 ),
 
-                self.result
+                self.result.main()
             ],
             spacing=0
         )
@@ -605,122 +474,7 @@ class Spray():
             self.state.update()
         except Exception:
             pass
-
-    def clear_list(self):
-        self.lists.controls.clear()
-        try:
-            self.lists.update()
-        except Exception as e:
-            pass
-    
-    def append_list(self, ctrl: ft.Control):
-        self.lists.controls.append(ctrl)
-        try:
-            self.lists.update()
-        except Exception as e:
-            pass
-    
-    def clear_result(self):
-        self.result.title = None
-        self.result.subtitle = None
-        self.result.leading = None
-
-        try:
-            self.result.update()
-        except Exception as e:
-            pass
-
-    def update_result(self, title: str, subtitle: str):
-        self.result.title = ft.Text(title, style=ft.TextThemeStyle.BODY_MEDIUM, weight=ft.FontWeight.BOLD)
-        self.result.subtitle = ft.Text(subtitle, style=ft.TextThemeStyle.BODY_SMALL)
-        self.result.leading = ft.Icon(ft.icons.CHECK, color="green")
-
-        try:
-            self.result.update()
-        except Exception as e:
-            pass
-
-    def add_item(self, value: dict, mode: str, filename: str, reason: str, description: str = None):
-        def close_dialog(e):
-            dialog.open = False
-            try:
-                self.page.update()
-            except Exception as e:
-                pass
-
-        def open_dialog(e):
-            self.page.dialog = dialog
-            dialog.open = True
-            try:
-                self.page.update()
-            except Exception as e:
-                pass
-        
-        dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text(filename),
-            content=ft.Column([
-                ft.Text(value.get("displayName", {}).get(Lang.value("common.localize")) or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM),
-                ft.Row([
-                    ft.Text(value.get("uuid", ""), style=ft.TextThemeStyle.BODY_SMALL),
-                    self.gui.copy_button(value.get("uuid", ""))
-                ]),
-                ft.Image(src=f"output/sprays/{filename}", width=200, height=200, fit=ft.ImageFit.CONTAIN)
-            ]),
-            actions=[
-                ft.TextButton(Lang.value("common.ok"), on_click=close_dialog),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        iconbutton: ft.IconButton
-        imagebutton = ft.IconButton(
-            icon=ft.icons.PREVIEW,
-            tooltip=Lang.value("common.preview"),
-            on_click = open_dialog
-        )
-        buttons = ft.Row([imagebutton])
-        if type(description)==str:
-            buttons.controls.insert(
-                0,
-                ft.IconButton(
-                    icon=ft.icons.HELP,
-                    tooltip=Lang.value("common.detail"),
-                    on_click=lambda e: self.gui.dialog_ok(ft.Text(reason), ft.Text(description, style=ft.TextThemeStyle.BODY_MEDIUM))
-                )
-            )
-
-        if mode=="success":
-            iconbutton = ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=reason)
-        elif mode=="skipped":
-            iconbutton = ft.IconButton(icon=ft.icons.NEARBY_ERROR, icon_color="yellow", tooltip=reason)
-        elif mode=="warn":
-            iconbutton = ft.IconButton(icon=ft.icons.WARNING, icon_color="yellow", tooltip=reason)
-        elif mode=="error":
-            iconbutton = ft.IconButton(icon=ft.icons.ERROR, icon_color="red", tooltip=reason)
-
-        self.append_list(
-            ft.Card(
-                ft.Container(
-                    ft.Column([
-                        ft.Row(
-                            controls=[
-                                ft.Row([
-                                    iconbutton,
-                                    ft.Text(value.get("displayName", {}).get(Lang.value("common.localize")) or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM)
-                                ]),
-                                buttons
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                        ),
-                        ft.Row([
-                            ft.Text(filename, style=ft.TextThemeStyle.BODY_SMALL)
-                        ])
-                    ]),
-                    padding=3
-                )
-            )
-        )    
-        
+      
     def get_filename(self, data: dict) -> str:
         name = data.get("displayName", {})["en-US"]
         uuid = data.get("uuid")
@@ -740,9 +494,9 @@ class Spray():
 
 class Buddy():
     page: ft.Page
-    loading: ft.Container
+    loading: Gui.ProgressRing
     state: ft.Text
-    lists: ft.ListView
+    lists: Gui.UpdateResult
     switch_force: ft.Switch
     switch_upload: ft.Switch
 
@@ -751,10 +505,10 @@ class Buddy():
         self.page = page
         self.gui = gui
         
-        self.loading = ft.Container()
+        self.loading = self.gui.ProgressRing(self.page)
         self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
-        self.result = ft.ListTile()
-        self.lists = ft.ListView(expand=1, spacing=10, padding=20, auto_scroll=True)
+        self.result = self.gui.Result(self.page)
+        self.lists = self.gui.UpdateResult(self.page, "output/buddies")
         self.switch_force = ft.Switch(label=Lang.value("contents.update.common.toggle_force_off"), value=False)
         self.switch_upload = ft.Switch(label=Lang.value("contents.update.common.toggle_upload_on"), value=True)
 
@@ -788,14 +542,10 @@ class Buddy():
         def on_clicked(e):
             result = {"skipped": 0, "success": 0, "warn": 0, "error": 0}
             try:
-                self.clear_list()
-                self.clear_result()
+                self.lists.clear()
+                self.result.clear()
                 self.update_state(Lang.value("contents.update.buddy.begin"))
-                self.loading.content = ft.ProgressRing(width=16, height=16, stroke_width = 2)
-                try:
-                    self.loading.update()
-                except Exception as e:
-                    pass
+                self.loading.state(True)
 
                 os.makedirs("output/buddies", exist_ok=True)
                 data = JSON.read("api/buddies.json")
@@ -833,7 +583,7 @@ class Buddy():
                         if value.get("displayIcon")!=None:
                             icon = value.get("displayIcon")
                         if icon==None:
-                            self.add_item(value, "warn", filename, Lang.value("common.warn"), Lang.value("contents.update.buddy.warn_notfound"))
+                            self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")), filename, f"output/buddies/{filename}", "warn", Lang.value("common.warn"), Lang.value("contents.update.buddy.warn_notfound"))
                             result["warn"] += 1
                             continue
                         
@@ -845,32 +595,26 @@ class Buddy():
                         if (not exist) and login:
                             fd = filename.replace(" ", "_")
                             self.wiki.upload(fd, Lang.value("contents.update.buddy.wiki_description"), f"output/buddies/{filename}")
-                            self.add_item(value, "success", filename, Lang.value("common.success"))
+                            self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")), filename, f"output/buddies/{filename}", "success", Lang.value("common.success"))
+                            
                             result["success"] += 1
                         else:
+                            self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")) or "", filename, f"output/buddies/{filename}", "skipped", Lang.value("common.skipped"))
                             result["skipped"] += 1
 
                     except Exception as e:
-                        self.add_item(value, "error", filename, Lang.value("common.error"), str(e))
-                        self.gui.popup_error(Lang.value("contents.update.buddy.failed"), str(e))
+                        self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")), filename, f"output/buddies/{filename}", "error", Lang.value("common.error"), str(e))
                         result["error"] += 1
                 
-                self.update_result(
-                    Lang.value("contents.update.buddy.success"), 
-                    Lang.value("contents.update.buddy.result").format(skipped=result["skipped"], success=result["success"], warn=result["warn"], error=result["error"])
-                )
+                self.result.success(Lang.value("contents.update.buddy.success"), Lang.value("contents.update.buddy.result").format(skipped=result["skipped"], success=result["success"], warn=result["warn"], error=result["error"]))
                 self.gui.popup_success(Lang.value("contents.update.buddy.success"))
 
             except Exception as e:
+                self.result.error(Lang.value("contents.update.buddy.failed"))
                 self.gui.popup_error(Lang.value("contents.update.buddy.failed"), str(e))
 
             finally:
-                self.loading.content = None
-                try:
-                    self.loading.update()
-                except Exception as e:
-                    pass
-                self.update_state("")
+                self.loading.state(False)
     
         return ft.Column(
             [
@@ -898,17 +642,17 @@ class Buddy():
                             ),
                             padding=10
                         ),
-                        self.loading,
+                        self.loading.main(),
                         self.state
                     ],
                 ),
                 ft.Container(
-                    content=self.lists,
+                    content=self.lists.main(),
                     padding=10,
                     height=200
                 ),
 
-                self.result
+                self.result.main()
             ],
             spacing=0
         )
@@ -919,121 +663,6 @@ class Buddy():
             self.state.update()
         except Exception:
             pass
-
-    def clear_list(self):
-        self.lists.controls.clear()
-        try:
-            self.lists.update()
-        except Exception as e:
-            pass
-    
-    def append_list(self, ctrl: ft.Control):
-        self.lists.controls.append(ctrl)
-        try:
-            self.lists.update()
-        except Exception as e:
-            pass
-    
-    def clear_result(self):
-        self.result.title = None
-        self.result.subtitle = None
-        self.result.leading = None
-
-        try:
-            self.result.update()
-        except Exception as e:
-            pass
-
-    def update_result(self, title: str, subtitle: str):
-        self.result.title = ft.Text(title, style=ft.TextThemeStyle.BODY_MEDIUM, weight=ft.FontWeight.BOLD)
-        self.result.subtitle = ft.Text(subtitle, style=ft.TextThemeStyle.BODY_SMALL)
-        self.result.leading = ft.Icon(ft.icons.CHECK, color="green")
-
-        try:
-            self.result.update()
-        except Exception as e:
-            pass
-
-    def add_item(self, value: dict, mode: str, filename: str, reason: str, description: str = None):
-        def close_dialog(e):
-            dialog.open = False
-            try:
-                self.page.update()
-            except Exception as e:
-                pass
-
-        def open_dialog(e):
-            self.page.dialog = dialog
-            dialog.open = True
-            try:
-                self.page.update()
-            except Exception as e:
-                pass
-        
-        dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text(filename),
-            content=ft.Column([
-                ft.Text(value.get("displayName", {}).get(Lang.value("common.localize")) or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM),
-                ft.Row([
-                    ft.Text(value.get("uuid", ""), style=ft.TextThemeStyle.BODY_SMALL),
-                    self.gui.copy_button(value.get("uuid", ""))
-                ]),
-                ft.Image(src=f"output/buddies/{filename}", width=200, height=200, fit=ft.ImageFit.CONTAIN)
-            ]),
-            actions=[
-                ft.TextButton(Lang.value("common.ok"), on_click=close_dialog),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        iconbutton: ft.IconButton
-        imagebutton = ft.IconButton(
-            icon=ft.icons.PREVIEW,
-            tooltip=Lang.value("common.preview"),
-            on_click = open_dialog
-        )
-        buttons = ft.Row([imagebutton])
-        if type(description)==str:
-            buttons.controls.insert(
-                0,
-                ft.IconButton(
-                    icon=ft.icons.HELP,
-                    tooltip=Lang.value("common.detail"),
-                    on_click=lambda e: self.gui.dialog_ok(ft.Text(reason), ft.Text(description, style=ft.TextThemeStyle.BODY_MEDIUM))
-                )
-            )
-
-        if mode=="success":
-            iconbutton = ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=reason)
-        elif mode=="skipped":
-            iconbutton = ft.IconButton(icon=ft.icons.NEARBY_ERROR, icon_color="yellow", tooltip=reason)
-        elif mode=="warn":
-            iconbutton = ft.IconButton(icon=ft.icons.WARNING, icon_color="yellow", tooltip=reason)
-        elif mode=="error":
-            iconbutton = ft.IconButton(icon=ft.icons.ERROR, icon_color="red", tooltip=reason)
-
-        self.append_list(
-            ft.Card(
-                ft.Container(
-                    ft.Column([
-                        ft.Row(
-                            controls=[
-                                ft.Row([
-                                    iconbutton,
-                                    ft.Text(value.get("displayName", {}).get(Lang.value("common.localize")) or "", weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM)
-                                ]),
-                                buttons
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                        ),
-                        ft.Row([
-                            ft.Text(filename, style=ft.TextThemeStyle.BODY_SMALL)
-                        ])
-                    ]),
-                    padding=3
-                )
-            )
-        )    
         
     def get_filename(self, data: dict) -> str:
         name = data.get("displayName", {})["en-US"]
@@ -1045,4 +674,194 @@ class Buddy():
         name = WikiString.wiki_format(name)
         return f"{name}.png"
 
+class Competitivetier():
+    page: ft.Page
+    loading: Gui.ProgressRing
+    state: ft.Text
+    lists: Gui.UpdateResult
+    switch_force: ft.Switch
+    switch_upload: ft.Switch
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+        
+        self.loading = self.gui.ProgressRing(self.page)
+        self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
+        self.result = self.gui.Result(self.page)
+        self.lists = self.gui.UpdateResult(self.page, "output/competitivetiers")
+        self.switch_force = ft.Switch(label=Lang.value("contents.update.common.toggle_force_off"), value=False)
+        self.switch_upload = ft.Switch(label=Lang.value("contents.update.common.toggle_upload_on"), value=True)
+
+        def on_changed_force(e):
+            if self.switch_force.value:
+                self.switch_force.label = Lang.value("contents.update.common.toggle_force_on")
+            else:
+                self.switch_force.label = Lang.value("contents.update.common.toggle_force_off")
+
+            try:
+                self.switch_force.update()
+            except Exception as e:
+                pass
+
+        def on_changed_upload(e):
+            if self.switch_upload.value:
+                self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_on")
+            else:
+                self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_off")
+
+            try:
+                self.switch_upload.update()
+            except Exception as e:
+                pass
+            
+        self.switch_force.on_change = on_changed_force
+        self.switch_upload.on_change = on_changed_upload
+              
+    def main(self):
+
+        def on_clicked(e):
+            result = {"skipped": 0, "success": 0, "warn": 0, "error": 0}
+            try:
+                self.lists.clear()
+                self.result.clear()
+                self.update_state(Lang.value("contents.update.competitivetier.begin"))
+                self.loading.state(True)
+
+                os.makedirs("output/competitivetiers", exist_ok=True)
+                data = JSON.read("api/competitivetiers.json")
+
+                login: bool = True
+                try:
+                    self.wiki.login()
+                except Exception as e:
+                    login = False
+                    self.gui.popup_error(Lang.value("common.wikilogin_failed"), str(e))
+
+                max = len(data[-1]["tiers"])
+                count = 1
+
+                for value in data[-1]["tiers"]:
+                    progress = Lang.value("contents.update.common.progress").format(count=count, max=max)
+                    self.update_state(progress)
+                    count += 1
+
+                    for type in ["large", "rankTriangleDown", "rankTriangleUp"]:
+                        try:
+                            filename = self.get_filename(value, type)
+
+                            # update check
+                            exist: bool
+                            download: bool = False
+                            if self.switch_force.value:
+                                exist = self.wiki.check_exist(f"File:{filename}")
+                            else:
+                                exist = os.path.exists(f"output/competitivetiers/{filename}")
+                                if not exist:
+                                    download = True
+                                    exist = self.wiki.check_exist(f"File:{filename}")
+                            
+                            # icon link
+                            icon: str = None
+                            if value.get(f"{type}Icon")!=None:
+                                icon = value.get(f"{type}Icon")
+                            if icon==None:
+                                self.lists.append(value, value.get("tierName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", filename, f"output/competitivetiers/{filename}", "warn", Lang.value("common.warn"), Lang.value("contents.update.competitivetier.warn_notfound"))
+                                result["warn"] += 1
+                                continue
+                            
+                            # download
+                            if download:
+                                Fetch.download(icon, f"output/competitivetiers/{filename}")
+                                    
+                            # upload
+                            if (not exist) and login:
+                                fd = filename.replace(" ", "_")
+                                self.wiki.upload(fd, Lang.value(f"contents.update.competitivetier.wiki_description.{type}"), f"output/competitivetiers/{filename}")
+                                self.lists.append(value, value.get("tierName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", filename, f"output/competitivetiers/{filename}", "success", Lang.value("common.success"))
+                                
+                                result["success"] += 1
+                            else:
+                                self.lists.append(value, value.get("tierName", {}).get(Lang.value("common.localize")) or "", filename, f"output/competitivetiers/{filename}", "skipped", Lang.value("common.skipped"))
+                                result["skipped"] += 1
+
+                        except Exception as e:
+                            self.lists.append(value, value.get("tierName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", filename, f"output/competitivetiers/{filename}", "error", Lang.value("common.error"), str(e))
+                            result["error"] += 1
+                
+                self.result.success(Lang.value("contents.update.competitivetier.success"), Lang.value("contents.update.competitivetier.result").format(skipped=result["skipped"], success=result["success"], warn=result["warn"], error=result["error"]))
+                self.gui.popup_success(Lang.value("contents.update.competitivetier.success"))
+
+            except Exception as e:
+                self.result.error(Lang.value("contents.update.competitivetier.failed"))
+                self.gui.popup_error(Lang.value("contents.update.competitivetier.failed"), str(e))
+
+            finally:
+                self.loading.state(False)
+                self.update_state("")
+    
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.update.competitivetier.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.update.competitivetier.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+
+                ft.Container(
+                    ft.Column([
+                        self.switch_upload,
+                        self.switch_force,
+                    ])
+                ),
+                ft.Container(height=30),
+                
+                ft.Row(
+                    controls=[
+                        ft.Container(
+                            content=ft.FilledTonalButton(
+                                text=Lang.value("contents.update.common.button"),
+                                icon=ft.icons.DOWNLOAD,
+                                on_click=on_clicked
+                            ),
+                            padding=10
+                        ),
+                        self.loading.main(),
+                        self.state
+                    ],
+                ),
+                ft.Container(
+                    content=self.lists.main(),
+                    padding=10,
+                    height=200
+                ),
+
+                self.result.main()
+            ],
+            spacing=0
+        )
+
+    def update_state(self, str: str):
+        self.state.value = str
+        try:
+            self.state.update()
+        except Exception:
+            pass
+
+    def get_filename(self, data: dict, type: str) -> str:
+        name = str.title(data.get("tierName", {})["en-US"])
+        uuid = data.get("uuid")
+
+        if name==None:
+            raise Exception("Failed to get item's name.")
+        
+        name = WikiString.wiki_format(name)
+
+        if type=="large":
+            return f"{name}.png"
+        elif type=="rankTriangleDown":
+            return f"{name} triangle down.png"
+        elif type=="rankTriangleUp":
+            return f"{name} triangle_up.png"
 

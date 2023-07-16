@@ -19,11 +19,17 @@
         "success": "成功",
         "failed": "失敗",
         "warn": "警告",
+        "skipped": "スキップ",
         "error": "エラー",
         "copy": "コピー",
         "detail": "詳細",
-        "copy_success": "テキストをコピーしました。",
+        "export": "エクスポート",
+        "import": "インポート",
+        "open_directory": "ディレクトリを開く",
         "preview": "プレビュー",
+        "copy_success": "テキストをコピーしました。",
+        "export_success": "エクスポートしました。",
+        "wikilogin_failed": "Wiki Botへのログインに失敗しました。",
         "playercard": "プレイヤーカード",
         "playertitle": "プレイヤータイトル",
         "spray": "スプレー",
@@ -38,7 +44,9 @@
         "map": "マップ",
         "season": "シーズン",
         "weapon": "武器",
-        "wikilogin_failed": "Wiki Botへのログインに失敗しました。"
+        "currency": "通貨",
+        "event": "イベント",
+        "gamemode": "ゲームモード"
     },
     "settings": {
         "title": "環境設定",
@@ -111,7 +119,8 @@
                 "toggle_force_on": "チェックモード: Wikiにアップロードされているかを確認（低速）",
                 "toggle_force_off": "チェックモード: ローカルファイルを確認（高速）",
                 "toggle_upload_on": "アップロード: Wikiへのアップロードを行う（低速）",
-                "toggle_upload_off": "アップロード: Wikiへのアップロードを行わない（高速）"
+                "toggle_upload_off": "アップロード: Wikiへのアップロードを行わない（高速）",
+                "open_directory": "出力ファイルのディレクトリを開く"
             },
             "playercard": {
                 "title": "プレイヤーカード",
@@ -149,7 +158,17 @@
             },
             "competitivetier": {
                 "title": "ランク",
-                "description": "ランクのデータを更新します。"
+                "description": "ランクのデータを更新します。",
+                "begin": "ランクの更新確認を開始しています",
+                "failed": "ランクの更新確認に失敗しました。",
+                "success": "ランクの更新確認に成功しました。",
+                "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
+                "warn_notfound": "画像が見つかりませんでした。",
+                "wiki_description": {
+                    "large": "[[Category:ランク]]\n\n{{License Riot Games}}",
+                    "rankTriangleDown": "[[Category:ACTランク]]\n\n{{License Riot Games}}",
+                    "rankTriangleUp": "[[Category:ACTランク]]\n\n{{License Riot Games}}"
+                }
             },  
             "agent": {
                 "title": "エージェント",

@@ -2,6 +2,7 @@ import flet as ft
 from utils.tools.config import Config
 from utils.tools.localize import Lang
 from utils.tools.assets import Assets
+from utils.tools.json import JSON
 from utils.tools.wiki import Wiki
 from utils.tools.gui import Gui
 
@@ -48,6 +49,12 @@ class Home():
                         ft.Row(
                             controls=[
                                 ft.Container(ft.Text(Lang.value("description"), style=ft.TextThemeStyle.BODY_MEDIUM), margin=10)
+                            ],
+                            alignment="center"
+                        ),
+                        ft.Row(
+                            controls=[
+                                ft.Container(ft.Text(JSON.read(Assets.path("assets/package.json")).get("version", []), style=ft.TextThemeStyle.BODY_SMALL), margin=10)
                             ],
                             alignment="center"
                         ),

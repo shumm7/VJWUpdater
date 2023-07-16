@@ -8,57 +8,6 @@ from utils.tools.localize import Lang
 
 
 
-
-
-
-class ApiData:
-    def agent_from_uuid(uuid: str) -> dict:
-        agents = JSON.read("api/agents.json")
-
-        for agent in agents:
-            if agent["uuid"] == uuid:
-                return agent
-        return None
-
-    def buddy_from_uuid(uuid: str) -> dict:
-        buddies = JSON.read("api/buddies.json")
-
-        for buddy in buddies:
-            if buddy["uuid"]==uuid:
-                return buddy
-        return None
-
-    def buddy_from_charmlevel_uuid(uuid: str) -> dict:
-        buddies = JSON.read("api/buddies.json")
-
-        for buddy in buddies:
-            for level in buddy["levels"]:
-                if level["uuid"]==uuid:
-                    return buddy
-        return None
-    def spray_from_uuid(uuid: str) -> dict:
-        sprays = JSON.read("api/sprays.json")
-
-        for spray in sprays:
-            if spray["uuid"]==uuid:
-                return spray
-        return None
-
-    def playercard_from_uuid(uuid: str) -> dict:
-        playercards = JSON.read("api/playercards.json")
-
-        for playercard in playercards:
-            if playercard["uuid"]==uuid:
-                return playercard
-        return None
-
-    def playertitle_from_uuid(uuid: str) -> dict:
-        playertitles = JSON.read("api/playertitles.json")
-
-        for playertitle in playertitles:
-            if playertitle["uuid"]==uuid:
-                return playertitle
-        return None
             
 class Misc:
     class CoreList:
