@@ -67,6 +67,10 @@ class Gui():
             )
         
     def popup_error(self, title: str, subtitle: str = None):
+        time: str = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S.%f")
+        os.makedirs("output/logs", exist_ok=True)
+        JSON.save(f"output/logs/log_{time}_error.json", {"title": title, "subtitle": subtitle})
+
         if type(subtitle)==str:
             return self.popup(
                 ft.Row([

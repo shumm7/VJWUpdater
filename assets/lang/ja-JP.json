@@ -6,9 +6,10 @@
         "settings": "設定",
         "home": "ホーム",
         "cache": "データ",
-        "update": "更新",
+        "update": "更新確認",
+        "list": "リスト",
         "template": "テンプレート",
-        "misc": "その他"
+        "esports": "競技シーン"
     },
     "common": {
         "localize": "ja-JP",
@@ -25,6 +26,7 @@
         "detail": "詳細",
         "export": "エクスポート",
         "import": "インポート",
+        "url": "URL",
         "open_directory": "ディレクトリを開く",
         "preview": "プレビュー",
         "copy_success": "テキストをコピーしました。",
@@ -46,7 +48,12 @@
         "weapon": "武器",
         "currency": "通貨",
         "event": "イベント",
-        "gamemode": "ゲームモード"
+        "gamemode": "ゲームモード",
+        "error_message": {
+            "cookie_expired": "Cookieが期限切れです。",
+            "requests_failed": "リクエストに失敗しました。"
+
+        }
     },
     "settings": {
         "title": "環境設定",
@@ -61,13 +68,34 @@
             "dark": "ダークモード"
         },
         "api": {
-            "title": "Wiki API",
-            "url": "URL"
+            "title": "Wiki API"
+        },
+        "riot": {
+            "title": "Riot アカウント ログイン",
+            "id": "ユーザーネーム",
+            "password": "パスワード",
+            "button": "ログイン",
+            "success": "ログインに成功しました。",
+            "failed": "ログインに失敗しました。",
+            "2fa": "ログインコードを入力",
+            "logincode": "ログインコード",
+            "auth": {
+                "busy": "数分間待ってから、再度お試しください。",
+                "sent_email": "{email} へログインコードを送信しました。",
+                "2fa_active": "2段階認証が有効化されています。",
+                "2fa_invalid": "ログインコードが間違っています。",
+                "incorrect": "ユーザーネームかパスワードが間違っています。",
+                "cookie_expired": "Cookieが期限切れです。",
+                "name_key": "ユーザー名、もしくは、タグラインが取得できませんでした。",
+                "error": "不明なエラーが発生しました。"
+            }
+
         },
         "wikibot": {
             "title": "Wiki Bot ログイン",
             "id": "ID",
             "password": "パスワード",
+            "button": "ログインできるかを確認して保存",
             "login": "ログインできるかを確認して保存。",
             "success": "テストログインに成功したため、ログイン情報を保存しました。",
             "failed": "テストログインに失敗しました。"
@@ -199,6 +227,22 @@
             "levelborder": {
                 "title": "レベルボーダー",
                 "description": "レベルボーダーのデータを更新します。"
+            }
+        },
+        "template": {
+            "common": {
+                "button": "テンプレートを生成"
+            },
+            "cite": {
+                "title": "Cite",
+                "description": "Cite（引用文テンプレート）を生成します。",
+                "toggle_ref_off": "Refタグ: 外す",
+                "toggle_ref_on": "Refタグ: 付ける",
+                "begin": "テンプレートの生成を開始しています",
+                "failed": "Cite テンプレートの生成に失敗しました。",
+                "url": "URLからテンプレートを生成",
+                "button": "URLから取得"
+
             }
         }
     }

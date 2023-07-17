@@ -1,23 +1,28 @@
-import os, glob
+import os, glob, asyncio
 import flet as ft
 
 from utils.tools.localize import Lang
 from utils.tools.config import Config
 from utils.tools.assets import Assets
+from utils.tools.endpoint import Endpoint
+from utils.tools.api import API
 from utils.tools.wiki import Wiki
+from utils.tools.auth import Auth, RiotAccount
 from utils.tools.gui import Gui
 
 class Settings():
     page: ft.Page
     wiki: Wiki
     gui: Gui
+    auth: RiotAccount
     content: ft.Container
 
     def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page) -> None:
         self.wiki = wiki
         self.page = page
         self.gui = gui
-    
+        self.auth = RiotAccount(page)
+
     def main(self):
         # 言語設定
         language_list = {}
@@ -78,19 +83,80 @@ class Settings():
         
 
         # Wiki API
-        api_url_field: ft.TextField = ft.TextField(label=Lang.value("settings.api.url"), value=Config.read_key("api"))
+        api_url_field: ft.TextField = ft.TextField(label=Lang.value("common.url"), value=Config.read_key("api"))
 
         def api_changed(e):
             Config.save_key("api", api_url_field.value)
         
         api_url_field.on_change = api_changed
 
+
+        # Riot アカウント ログイン
+        riot_loading = ft.Container()
+        riot_login_button: ft.FilledTonalButton = ft.FilledTonalButton(text=Lang.value("settings.riot.button"), icon=ft.icons.LOGIN)
+        riot_id_field: ft.TextField = ft.TextField(label=Lang.value("settings.riot.id"))
+        riot_password_field: ft.TextField = ft.TextField(label=Lang.value("settings.riot.password"), password=False, can_reveal_password=True)
+        riot_username: ft.Text = ft.Text()
+        riot_playercard: ft.CircleAvatar = ft.CircleAvatar()
+        
+        def set_playercard():
+            player_name = Auth().get_auth().get("username")
+
+            if player_name!=None:
+                try:
+                    card_id = Endpoint().fetch_player_loadout()["Identity"]["PlayerCardID"]
+                    card_url = API.playercard_by_uuid(card_id)["displayIcon"]
+                    riot_username.value = player_name
+                    riot_playercard.foreground_image_url = card_url
+                except:
+                    pass
+
+                try:
+                    riot_username.update()
+                    riot_playercard.update()
+                except Exception as e:
+                    pass
+
+        def riot_clicked(e):
+            try:
+                riot_loading.content = ft.ProgressRing(width=16, height=16, stroke_width = 2)
+                try:
+                    riot_loading.update()
+                except Exception as e:
+                    pass
+
+                asyncio.run(self.auth.login(riot_id_field.value, riot_password_field.value))
+
+            except Exception as e:
+                self.gui.popup_error(Lang.value("settings.riot.failed"), str(e))
+
+            finally:
+                riot_loading.content = None
+                set_playercard()
+                try:
+                    riot_loading.update()
+                except Exception as e:
+                    pass
+                
+                riot_id_field.value = ""
+                try:
+                    riot_id_field.update()
+                except Exception as e:
+                    pass
+
+                riot_password_field.value = ""
+                try:
+                    riot_password_field.update()
+                except Exception as e:
+                    pass
+
+        riot_login_button.on_click = riot_clicked
+        set_playercard()
+
+
         # Wiki Bot ログイン
         wikibot_loading = ft.Container()
-        wikibot_login_button: ft.FilledTonalButton = ft.FilledTonalButton(
-            text=Lang.value("settings.wikibot.login"),
-            icon=ft.icons.LOGIN
-        )
+        wikibot_login_button: ft.FilledTonalButton = ft.FilledTonalButton(text=Lang.value("settings.wikibot.button"), icon=ft.icons.LOGIN)
         wikibot_id_field: ft.TextField = ft.TextField(label=Lang.value("settings.wikibot.id"), value=Config.read_key("wikibot").get("id"))
         wikibot_password_field: ft.TextField = ft.TextField(label=Lang.value("settings.wikibot.password"), password=True, can_reveal_password=True)
 
@@ -213,6 +279,51 @@ class Settings():
                                     ),
                                 ),
                                 api_url_field
+                            ]
+                        ),
+                        ft.Divider(),
+
+                        # Riot アカウント
+                        ft.Column(
+                            controls=[
+                                ft.Container(
+                                    padding=10,
+                                    content=ft.Row(
+                                        alignment=ft.MainAxisAlignment.START, 
+                                        controls=[
+                                            ft.Icon(name=ft.icons.SMART_TOY_SHARP),
+                                            ft.Text(Lang.value("settings.riot.title"), style=ft.TextThemeStyle.BODY_MEDIUM),
+                                        ]
+                                    ),
+                                ),
+
+                                ft.Row(
+                                    controls=[
+                                        ft.Column(
+                                            controls=[
+                                                riot_id_field,
+                                                riot_password_field
+                                            ],
+                                            expand=True
+                                        ),
+                                    ],
+                                ),
+                                ft.Row(
+                                    controls=[
+                                        ft.Row([
+                                            riot_playercard,
+                                            riot_username
+                                        ]),
+                                        ft.Row([
+                                            riot_loading,
+                                            ft.Container(
+                                                content=riot_login_button,
+                                                padding=10
+                                            )
+                                        ])
+                                    ],
+                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                )
                             ]
                         ),
                         ft.Divider(),

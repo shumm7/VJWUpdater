@@ -9,6 +9,7 @@ from utils.cogs.settings import Settings
 from utils.cogs.home import Home
 from utils.cogs.cache import Cache
 from utils.cogs.update import Update
+from utils.cogs.template import Template
 #from utils.cogs.wikitext import Wikitext
 #from utils.cogs.list import List
 #from utils.cogs.esports import Esports
@@ -20,6 +21,7 @@ class Core():
 
     cache: Cache
     update: Update
+    template: Template
     #wikitext: Wikitext
     #list: List
     #esports: Esports
@@ -37,6 +39,7 @@ class Core():
         self.home = Home(self.wiki, self.gui, self.page)
         self.cache = Cache(self.wiki, self.gui, self.page)
         self.update = Update(self.wiki, self.gui, self.page)
+        self.template = Template(self.wiki, self.gui, self.page)
         #self.wikitext = Wikitext(self.wiki, self.page)
         #self.list = List(self.wiki, self.page)
         #self.esports = Esports(self.wiki, self.page)      
@@ -72,12 +75,17 @@ class Core():
                         content=self.update.main()
                     ),
                     ft.Tab(
-                        text=Lang.value("tabs.template"),
-                        icon=ft.icons.CONTACT_PAGE,
+                        text=Lang.value("tabs.list"),
+                        icon=ft.icons.LIST_ALT,
                     ),
                     ft.Tab(
-                        text=Lang.value("tabs.misc"),
-                        icon=ft.icons.AUTO_FIX_NORMAL,
+                        text=Lang.value("tabs.template"),
+                        icon=ft.icons.CONTACT_PAGE,
+                        content=self.template.main()
+                    ),
+                    ft.Tab(
+                        text=Lang.value("tabs.esports"),
+                        icon=ft.icons.MOUSE,
                     ),
                 ],
                 expand=True,
