@@ -120,7 +120,8 @@
                 "toggle_force_off": "チェックモード: ローカルファイルを確認（高速）",
                 "toggle_upload_on": "アップロード: Wikiへのアップロードを行う（低速）",
                 "toggle_upload_off": "アップロード: Wikiへのアップロードを行わない（高速）",
-                "open_directory": "出力ファイルのディレクトリを開く"
+                "open_directory": "出力ファイルのディレクトリを開く",
+                "wiki_description": "\n{{License Riot Games}}"
             },
             "playercard": {
                 "title": "プレイヤーカード",
@@ -131,9 +132,9 @@
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
                 "warn_notfound": "画像が見つかりませんでした。",
                 "wiki_description": {
-                    "small": "[[Category:プレイヤーカードのアイコン]]\n\n{{License Riot Games}}",
-                    "wide": "[[Category:プレイヤーカードのバナー]]\n\n{{License Riot Games}}",
-                    "large": "[[Category:プレイヤーカード]]\n\n{{License Riot Games}}"
+                    "small": "[[Category:プレイヤーカードのアイコン]]",
+                    "wide": "[[Category:プレイヤーカードのバナー]]",
+                    "large": "[[Category:プレイヤーカード]]"
                 }
             },
             "spray": {
@@ -144,7 +145,7 @@
                 "success": "スプレーの更新確認に成功しました。",
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
                 "warn_notfound": "画像が見つかりませんでした。",
-                "wiki_description": "[[Category:スプレー]]\n\n{{License Riot Games}}"
+                "wiki_description": "[[Category:スプレー]]"
             },
             "buddy": {
                 "title": "ガンバディー",
@@ -154,7 +155,7 @@
                 "success": "ガンバディーの更新確認に成功しました。",
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
                 "warn_notfound": "画像が見つかりませんでした。",
-                "wiki_description": "[[Category:ガンバディー]]\n\n{{License Riot Games}}"
+                "wiki_description": "[[Category:ガンバディー]]"
             },
             "competitivetier": {
                 "title": "ランク",
@@ -165,14 +166,31 @@
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
                 "warn_notfound": "画像が見つかりませんでした。",
                 "wiki_description": {
-                    "large": "[[Category:ランク]]\n\n{{License Riot Games}}",
-                    "rankTriangleDown": "[[Category:ACTランク]]\n\n{{License Riot Games}}",
-                    "rankTriangleUp": "[[Category:ACTランク]]\n\n{{License Riot Games}}"
+                    "large": "[[Category:ランク]]",
+                    "rankTriangleDown": "[[Category:ACTランク]]",
+                    "rankTriangleUp": "[[Category:ACTランク]]"
                 }
             },  
             "agent": {
                 "title": "エージェント",
-                "description": "エージェントのデータを更新します。"
+                "description": "エージェントのデータを更新します。",
+                "begin": "エージェントの更新確認を開始しています",
+                "failed": "エージェントの更新確認に失敗しました。",
+                "success": "エージェントの更新確認に成功しました。",
+                "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
+                "warn_notfound": "画像が見つかりませんでした。",
+                "language": {
+                    "en-US": "英語",
+                    "ja-JP": "日本語"
+                },
+                "wiki_description": {
+                    "icon": "[[Category:エージェントのアイコン]][[Category:{agent}]]",
+                    "full": "[[Category:エージェントの画像]][[Category:{agent}]]",
+                    "killfeed": "[[Category:エージェントのアイコン]][[Category:{agent}]]",
+                    "background": "[[Category:エージェントの背景]][[Category:{agent}]]",
+                    "abilities": "[[Category:アビリティーのアイコン]][[Category:{agent}]]",
+                    "voiceLine": "[[Category:{language}のボイス]][[Category:{agent}のボイス]]"
+                }
             },
             "weapon": {
                 "title": "武器",

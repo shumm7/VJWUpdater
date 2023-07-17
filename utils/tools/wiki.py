@@ -86,7 +86,7 @@ class Wiki():
         data = ret.json()
 
         if data.get("error"):
-            raise Exception(f"Failed to create the page: {page}")
+            raise Exception(data.get("error", {}).get("info", f"Failed to create the page: {page}"))
     
     def edit_page(self, page: str, text: str, mode: str = "", summary: str = "", content_model: str = 'wikitext', minor: bool = False, editonly: bool = True):
         PAGE_EDIT_PARAMS = {
@@ -114,7 +114,7 @@ class Wiki():
         data = ret.json()
 
         if data.get("error"):
-            raise Exception(f"Failed to edit the page: {page}")
+            raise Exception(data.get("error", {}).get("info", f"Failed to edit the page: {page}"))
     
     def delete_page(self, page: str, reason: str):
         PAGE_DELETE_PARAMS = {
@@ -133,7 +133,7 @@ class Wiki():
         data = ret.json()
 
         if data.get("error"):
-            raise Exception(f"Failed to delete the page: {page}")
+            raise Exception(data.get("error", {}).get("info", f"Failed to delete the page: {page}"))
 
     
     def delete_from_pageid(self, pageid: str, reason: str):
@@ -153,7 +153,7 @@ class Wiki():
         data = ret.json()
 
         if data.get("error"):
-            raise Exception(f"Failed to edit the page: {pageid}")
+            raise Exception(data.get("error", {}).get("info", f"Failed to edit the page: {pageid}"))
     
     def check_exist(self, page: str):
         PAGE_CHECK_PARAMS = {
@@ -195,7 +195,7 @@ class Wiki():
         data = ret.json()
 
         if data.get("error"):
-            raise Exception(f"Failed to upload the file: {filename}")
+            raise Exception(data.get("error", {}).get("info", f"Failed to upload the file: {filename}"))
     
     def pages_in_category(self, category: str):
         LIST_PARAMS = {
@@ -213,7 +213,7 @@ class Wiki():
         data = ret.json()
 
         if data.get("error"):
-            raise Exception(f"Failed to fetch pages in the specific category \"{category}\"")
+            raise Exception(data.get("error", {}).get("info", f"Failed to fetch pages in the specific category \"{category}\""))
         return data
         
     def delete_pages_in_specified_category(self, category: str, reason: str, namespace: int = -1):
@@ -232,7 +232,7 @@ class Wiki():
                 finally:
                     continue
         else:
-            raise Exception(f"Failed to delete pages in the specific category \"{category}\"")
+            raise Exception(data.get("error", {}).get("info", f"Failed to delete pages in the specific category \"{category}\""))
 
 class WikiString:
     def wiki_format(string: str) -> str:

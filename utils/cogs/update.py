@@ -21,6 +21,7 @@ class Update():
         self.spray = Spray(wiki, gui, page)
         self.buddy = Buddy(wiki, gui, page)
         self.competitivetier = Competitivetier(wiki, gui, page)
+        self.agent = Agent(wiki, gui, page)
     
     def main(self):
         self.content = ft.Container(self.playercard.main(), expand=True)
@@ -36,6 +37,8 @@ class Update():
                 self.content.content = self.buddy.main()
             elif i==3:
                 self.content.content = self.competitivetier.main()
+            elif i==4:
+                self.content.content = self.agent.main()
             try:
                 self.content.update()
             except Exception as e:
@@ -212,7 +215,7 @@ class PlayerCard():
                             # upload
                             if (not exist) and login:
                                 fd = filename.replace(" ", "_")
-                                self.wiki.upload(fd, Lang.value(f"contents.update.playercard.wiki_description.{type}"), f"output/playercards/{type}/{filename}")
+                                self.wiki.upload(fd, Lang.value(f"contents.update.playercard.wiki_description.{type}") + Lang.value(f"contents.update.common.wiki_description"), f"output/playercards/{type}/{filename}")
                                 self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", filename, f"output/playercards/{type}/{filename}", "success", Lang.value("common.success"))
                                 
                                 result["success"] += 1
@@ -405,7 +408,7 @@ class Spray():
                         # upload
                         if (not exist) and login:
                             fd = filename.replace(" ", "_")
-                            self.wiki.upload(fd, Lang.value("contents.update.spray.wiki_description"), f"output/sprays/{filename}")
+                            self.wiki.upload(fd, Lang.value("contents.update.spray.wiki_description") + Lang.value(f"contents.update.common.wiki_description"), f"output/sprays/{filename}")
                             self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")) or "", filename, f"output/sprays/{filename}", "success", Lang.value("common.success"))
                             result["success"] += 1
                         else:
@@ -594,7 +597,7 @@ class Buddy():
                         # upload
                         if (not exist) and login:
                             fd = filename.replace(" ", "_")
-                            self.wiki.upload(fd, Lang.value("contents.update.buddy.wiki_description"), f"output/buddies/{filename}")
+                            self.wiki.upload(fd, Lang.value("contents.update.buddy.wiki_description") + Lang.value(f"contents.update.common.wiki_description"), f"output/buddies/{filename}")
                             self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")), filename, f"output/buddies/{filename}", "success", Lang.value("common.success"))
                             
                             result["success"] += 1
@@ -778,7 +781,7 @@ class Competitivetier():
                             # upload
                             if (not exist) and login:
                                 fd = filename.replace(" ", "_")
-                                self.wiki.upload(fd, Lang.value(f"contents.update.competitivetier.wiki_description.{type}"), f"output/competitivetiers/{filename}")
+                                self.wiki.upload(fd, Lang.value(f"contents.update.competitivetier.wiki_description.{type}") + Lang.value(f"contents.update.common.wiki_description"), f"output/competitivetiers/{filename}")
                                 self.lists.append(value, value.get("tierName", {}).get(Lang.value("common.localize"))+f" ({type})" or "", filename, f"output/competitivetiers/{filename}", "success", Lang.value("common.success"))
                                 
                                 result["success"] += 1
@@ -865,3 +868,237 @@ class Competitivetier():
         elif type=="rankTriangleUp":
             return f"{name} triangle_up.png"
 
+class Agent():
+    page: ft.Page
+    loading: Gui.ProgressRing
+    state: ft.Text
+    lists: Gui.UpdateResult
+    switch_force: ft.Switch
+    switch_upload: ft.Switch
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+        
+        self.loading = self.gui.ProgressRing(self.page)
+        self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
+        self.result = self.gui.Result(self.page)
+        self.lists = self.gui.UpdateResult(self.page, "output/buddies")
+        self.switch_force = ft.Switch(label=Lang.value("contents.update.common.toggle_force_off"), value=False)
+        self.switch_upload = ft.Switch(label=Lang.value("contents.update.common.toggle_upload_on"), value=True)
+
+        def on_changed_force(e):
+            if self.switch_force.value:
+                self.switch_force.label = Lang.value("contents.update.common.toggle_force_on")
+            else:
+                self.switch_force.label = Lang.value("contents.update.common.toggle_force_off")
+
+            try:
+                self.switch_force.update()
+            except Exception as e:
+                pass
+
+        def on_changed_upload(e):
+            if self.switch_upload.value:
+                self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_on")
+            else:
+                self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_off")
+
+            try:
+                self.switch_upload.update()
+            except Exception as e:
+                pass
+            
+        self.switch_force.on_change = on_changed_force
+        self.switch_upload.on_change = on_changed_upload
+              
+    def main(self):
+
+        def on_clicked(e):
+            result = {"skipped": 0, "success": 0, "warn": 0, "error": 0}
+            try:
+                self.lists.clear()
+                self.result.clear()
+                self.update_state(Lang.value("contents.update.agent.begin"))
+                self.loading.state(True)
+
+                os.makedirs("output/agents", exist_ok=True)
+                data = JSON.read("api/agents.json")
+
+                login: bool = True
+                try:
+                    self.wiki.login()
+                except Exception as e:
+                    login = False
+                    self.gui.popup_error(Lang.value("common.wikilogin_failed"), str(e))
+
+                max = len(data)
+                count = 1
+
+                for value in data:
+                    progress = Lang.value("contents.update.common.progress").format(count=count, max=max)
+                    self.update_state(progress)
+                    count += 1
+                    agent_name = value.get("displayName", {})["ja-JP"]
+
+                    def update(_filename: str, _filedir: str, _title: str, _description: str):
+                        # update check
+                        exist: bool
+                        download: bool = False
+                        if self.switch_force.value:
+                            exist = self.wiki.check_exist(f"File:{_filename}")
+                        else:
+                            exist = os.path.exists(f"output/agents/{_filename}")
+                            if not exist:
+                                download = True
+                                exist = self.wiki.check_exist(f"File:{_filename}")
+                        
+                        # icon link
+                        icon: str = _filedir
+                        if icon==None:
+                            self.lists.append(value, _title, _filename, f"output/agents/{_filename}", "warn", Lang.value("common.warn"), Lang.value("contents.update.agent.warn_notfound"))
+                            result["warn"] += 1
+                            return
+                        
+                        # download
+                        if download:
+                            Fetch.download(icon, f"output/agents/{_filename}")
+                                
+                        # upload
+                        if (not exist) and login:
+                            fd = _filename.replace(" ", "_")
+                            self.wiki.upload(fd, _description, f"output/agents/{_filename}")
+                            self.lists.append(value, _title, _filename, f"output/agents/{_filename}", "success", Lang.value("common.success"))
+                            
+                            result["success"] += 1
+                        else:
+                            self.lists.append(value, _title, _filename, f"output/agents/{_filename}", "skipped", Lang.value("common.skipped"))
+                            result["skipped"] += 1
+                    
+                    for type in ["icon", "full", "killfeed", "background", "abilities", "voiceLine"]:
+                        variable: str = None
+                        icons = []
+                        if type=="icon":
+                            icons.append([value.get("displayIcon"), None])
+                        elif type=="full":
+                            icons.append([value.get("fullPortrait"), None])
+                        elif type=="killfeed":
+                            icons.append([value.get("killfeedPortrait"), None])
+                        elif type=="background":
+                            icons.append([value.get("background"), None])
+                        elif type=="abilities":
+                            for ability in value.get("abilities", []):
+                                icons.append([ability.get("displayIcon"), ability.get("displayName")["en-US"]])
+                        elif type=="voiceLine":
+                            icons.append([value.get("voiceLine")["en-US"].get("mediaList", [])[0]["wave"], "en-us"])
+                            icons.append([value.get("voiceLine")["ja-JP"].get("mediaList", [])[0]["wave"], "ja-jp"])
+
+                        for icon in icons:
+                            try:
+                                filename = self.get_filename(value, type, icon[1])
+
+                                title: str = agent_name
+                                if type=="voiceLine":
+                                    if icon[1]=="ja-jp":
+                                        title += f" ({type} ja-jp)"
+                                        description = Lang.value(f"contents.update.agent.wiki_description.{type}").format(agent=agent_name, language=Lang.value("contents.update.agent.language.ja-JP")) + Lang.value(f"contents.update.common.wiki_description")
+                                    elif icon[1]=="en-us":
+                                        title += f" ({type} en-us)"
+                                        description = Lang.value(f"contents.update.agent.wiki_description.{type}").format(agent=agent_name, language=Lang.value("contents.update.agent.language.en-US")) + Lang.value(f"contents.update.common.wiki_description")
+                                elif type=="abilities":
+                                    description: str = Lang.value(f"contents.update.agent.wiki_description.{type}").format(agent=agent_name) + Lang.value(f"contents.update.common.wiki_description")
+                                    title += f" ({type} {icon[1]})"
+                                else:
+                                    description: str = Lang.value(f"contents.update.agent.wiki_description.{type}").format(agent=agent_name) + Lang.value(f"contents.update.common.wiki_description")
+                                    title += f" ({type})" 
+
+                                update(filename, icon[0], title, description)
+                            except Exception as e:
+                                self.lists.append(value, value.get("displayName", {}).get(Lang.value("common.localize")), filename, f"output/agents/{filename}", "error", Lang.value("common.error"), str(e))
+                                result["error"] += 1
+                            
+                
+                self.result.success(Lang.value("contents.update.agent.success"), Lang.value("contents.update.agent.result").format(skipped=result["skipped"], success=result["success"], warn=result["warn"], error=result["error"]))
+                self.gui.popup_success(Lang.value("contents.update.agent.success"))
+
+            except Exception as e:
+                self.result.error(Lang.value("contents.update.agent.failed"))
+                self.gui.popup_error(Lang.value("contents.update.agent.failed"), str(e))
+
+            finally:
+                self.loading.state(False)
+    
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.update.agent.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.update.agent.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+
+                ft.Container(
+                    ft.Column([
+                        self.switch_upload,
+                        self.switch_force
+                    ])
+                ),
+                ft.Container(height=30),
+                
+                ft.Row(
+                    controls=[
+                        ft.Container(
+                            content=ft.FilledTonalButton(
+                                text=Lang.value("contents.update.common.button"),
+                                icon=ft.icons.DOWNLOAD,
+                                on_click=on_clicked
+                            ),
+                            padding=10
+                        ),
+                        self.loading.main(),
+                        self.state
+                    ],
+                ),
+                ft.Container(
+                    content=self.lists.main(),
+                    padding=10,
+                    height=200
+                ),
+
+                self.result.main()
+            ],
+            spacing=0
+        )
+
+    def update_state(self, str: str):
+        self.state.value = str
+        try:
+            self.state.update()
+        except Exception:
+            pass
+        
+    def get_filename(self, data: dict, tp: str, variable: str = None) -> str:
+        name = data.get("displayName", {})["en-US"]
+
+        if name==None:
+            raise Exception("Failed to get item's name.")
+        
+        name = WikiString.wiki_format(name)
+        if type(variable)==str:
+            if variable == "Astral Form / Cosmic Divide":
+                variable = "Cosmic Divide"
+            variable = WikiString.wiki_format(variable)
+
+        if tp=="icon":
+            return f"{name} Icon.png"
+        elif tp=="full":
+            return f"{name}.png"
+        elif tp=="killfeed":
+            return f"{name} killfeed.png"
+        elif tp=="background":
+            return f"{name} Background.png"
+        elif tp=="abilities":
+            variable = variable.title().replace("'S", "'s")
+            return f"{variable} Icon.png"
+        elif tp=="voiceLine":
+            return f"{name} voiceline {variable} Agent Lockin.wav"
