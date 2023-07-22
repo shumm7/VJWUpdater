@@ -1,5 +1,9 @@
 import os, glob, asyncio
 import flet as ft
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from utils.tools.localize import Lang
 from utils.tools.config import Config
@@ -9,6 +13,7 @@ from utils.tools.api import API
 from utils.tools.wiki import Wiki
 from utils.tools.auth import Auth, RiotAccount
 from utils.tools.gui import Gui
+from utils.tools.fetch import Webdriver
 
 class Settings():
     page: ft.Page
@@ -72,10 +77,7 @@ class Settings():
                 self.page.theme_mode = ft.ThemeMode.LIGHT
             elif v == "dark":
                 self.page.theme_mode = ft.ThemeMode.DARK
-            try:
-                self.page.update()
-            except Exception as e:
-                pass
+            self.gui.safe_update(self.page)
             Config.save_key("theme", v)
 
         theme_dropdown.on_change = theme_selected
@@ -95,9 +97,10 @@ class Settings():
         riot_loading = ft.Container()
         riot_login_button: ft.FilledTonalButton = ft.FilledTonalButton(text=Lang.value("settings.riot.button"), icon=ft.icons.LOGIN)
         riot_id_field: ft.TextField = ft.TextField(label=Lang.value("settings.riot.id"))
-        riot_password_field: ft.TextField = ft.TextField(label=Lang.value("settings.riot.password"), password=False, can_reveal_password=True)
+        riot_password_field: ft.TextField = ft.TextField(label=Lang.value("settings.riot.password"), password=True, can_reveal_password=True)
         riot_username: ft.Text = ft.Text()
         riot_playercard: ft.CircleAvatar = ft.CircleAvatar()
+        riot_reflesh: ft.IconButton = ft.IconButton(icon=ft.icons.REFRESH, tooltip=Lang.value("common.reload"), on_click=lambda e: set_playercard())
         
         def set_playercard():
             player_name = Auth().get_auth().get("username")
@@ -108,23 +111,20 @@ class Settings():
                     card_url = API.playercard_by_uuid(card_id)["displayIcon"]
                     riot_username.value = player_name
                     riot_playercard.foreground_image_url = card_url
-                except:
-                    pass
-
-                try:
-                    riot_username.update()
-                    riot_playercard.update()
                 except Exception as e:
-                    pass
+                    riot_username.value = ""
+                    riot_playercard.foreground_image_url = None
+            else:
+                riot_username.value = ""
+                riot_playercard.foreground_image_url = None
+                
+            self.gui.safe_update(riot_username)
+            self.gui.safe_update(riot_playercard)
 
         def riot_clicked(e):
             try:
                 riot_loading.content = ft.ProgressRing(width=16, height=16, stroke_width = 2)
-                try:
-                    riot_loading.update()
-                except Exception as e:
-                    pass
-
+                self.gui.safe_update(riot_loading)
                 asyncio.run(self.auth.login(riot_id_field.value, riot_password_field.value))
 
             except Exception as e:
@@ -132,23 +132,13 @@ class Settings():
 
             finally:
                 riot_loading.content = None
-                set_playercard()
-                try:
-                    riot_loading.update()
-                except Exception as e:
-                    pass
+                self.gui.safe_update(riot_loading)
                 
                 riot_id_field.value = ""
-                try:
-                    riot_id_field.update()
-                except Exception as e:
-                    pass
-
+                self.gui.safe_update(riot_id_field)
                 riot_password_field.value = ""
-                try:
-                    riot_password_field.update()
-                except Exception as e:
-                    pass
+                self.gui.safe_update(riot_password_field)
+                set_playercard()
 
         riot_login_button.on_click = riot_clicked
         set_playercard()
@@ -178,10 +168,7 @@ class Settings():
 
             finally:
                 wikibot_loading.content = None
-                try:
-                    wikibot_loading.update()
-                except Exception as e:
-                    pass
+                self.gui.safe_update(wikibot_loading)
 
         wikibot_login_button.on_click = wikibot_clicked
 
@@ -200,12 +187,48 @@ class Settings():
                 logo_image.src = Assets.path(f"assets/logo.png")
             else:
                 logo_image.src = logo_src_field.value
-            try:
-                logo_image.update()
-            except Exception as e:
-                pass
+            self.gui.safe_update(logo_image)
         
         logo_src_field.on_change = logo_changed
+
+        # Webdriver
+        webdriver_radio = ft.RadioGroup(
+            content=ft.Row([
+                ft.Radio(value="chrome", label=Lang.value("settings.webdriver.chrome")),
+                ft.Radio(value="firefox", label=Lang.value("settings.webdriver.firefox")),
+                ft.Radio(value="edge", label=Lang.value("settings.webdriver.edge")),
+                ft.Radio(value="brave", label=Lang.value("settings.webdriver.brave"))
+            ]),
+            value=Config.read_key("webdriver")
+        )
+        webdriver_button = ft.FilledTonalButton(text=Lang.value("settings.webdriver.button"), icon=ft.icons.LOGIN, tooltip=Lang.value("settings.webdriver.tooltip"))
+        webdriver_loading = self.gui.ProgressRing(self.page)
+
+        def webdriver_changed(e):
+            Config.save_key("webdriver", webdriver_radio.value)
+        
+        def webdriver_clicked(e):
+            webdriver_button.disabled = True
+            self.gui.safe_update(webdriver_button)
+            webdriver_loading.state(True)
+
+            try:
+                driver = Webdriver.get()
+                driver.get("https://playvalorant.com/ja-jp/news/announcements/valorant-community-code/")
+                WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, "article")))
+                WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located)
+                driver.find_element(by=By.CSS_SELECTOR, value='h2[class*="heading-10 NewsArticleContent-module--title--"] span')
+                self.gui.popup_success(Lang.value("settings.webdriver.success"))
+            except Exception as e:
+                self.gui.popup_error(Lang.value("common.error_message.error"), str(e))
+            finally:
+                webdriver_loading.state(False)
+                webdriver_button.disabled = False
+                self.gui.safe_update(webdriver_button)
+
+            
+        webdriver_radio.on_change = webdriver_changed
+        webdriver_button.on_click = webdriver_clicked
 
         # Card
         card = ft.Card(
@@ -265,6 +288,33 @@ class Settings():
 
                         ft.Divider(),
 
+                        # Webdriver
+                        ft.Column(
+                            controls=[
+                                ft.Container(
+                                    padding=10,
+                                    content=ft.Row(
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN, 
+                                        controls=[
+                                            ft.Row([
+                                                ft.Icon(name=ft.icons.PUBLIC),
+                                                ft.Text(Lang.value("settings.webdriver.title"), style=ft.TextThemeStyle.BODY_MEDIUM)
+                                            ]),
+                                            webdriver_radio
+                                        ]
+                                    ),
+                                ),
+                                ft.Row(
+                                    [
+                                        webdriver_loading.main(),
+                                        webdriver_button
+                                    ],
+                                    alignment=ft.MainAxisAlignment.END
+                                )
+                            ]
+                        ),
+                        ft.Divider(),
+
                         # Wiki API
                         ft.Column(
                             controls=[
@@ -291,7 +341,7 @@ class Settings():
                                     content=ft.Row(
                                         alignment=ft.MainAxisAlignment.START, 
                                         controls=[
-                                            ft.Icon(name=ft.icons.SMART_TOY_SHARP),
+                                            ft.Icon(name=ft.icons.LINK),
                                             ft.Text(Lang.value("settings.riot.title"), style=ft.TextThemeStyle.BODY_MEDIUM),
                                         ]
                                     ),
@@ -311,6 +361,7 @@ class Settings():
                                 ft.Row(
                                     controls=[
                                         ft.Row([
+                                            riot_reflesh,
                                             riot_playercard,
                                             riot_username
                                         ]),
@@ -395,7 +446,7 @@ class Settings():
                                 )
                             ]
                         ),
-
+                        ft.Divider(),
                     ],
                     spacing=0,
                 ),

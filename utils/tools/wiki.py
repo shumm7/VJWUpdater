@@ -254,3 +254,17 @@ class WikiString:
                 ret += div
             ret += v
         return ret
+
+    def html_escape(string: str, chars: list[str] = ['|', '{', '}']):
+        for char in chars:
+            if len(char)==1:
+                string = string.replace(char, f"&#{ord(char)};")
+        return string
+
+    def is_url(url: str) -> bool:
+        o = urllib.parse.urlparse(url)
+        return len(o.scheme) > 0
+    
+    def remove_url_params(url: str) -> str:
+        o = urllib.parse.urlparse(url)
+        return f"{o.scheme}://{o.netloc}{o.path}"

@@ -8,6 +8,12 @@ class Gui():
 
     def __init__(self, page: ft.Page) -> None:
         self.page = page
+
+    def safe_update(self, o: ft.Control):
+        try:
+            o.update()
+        except:
+            pass
     
     def popup(self, content: ft, color: str):
         self.page.snack_bar = ft.SnackBar(
@@ -16,10 +22,7 @@ class Gui():
             show_close_icon=True
         )
         self.page.snack_bar.open = True
-        try:
-            self.page.update()
-        except Exception as e:
-            pass
+        self.safe_update(self.page)
     
     def popup_success(self, title: str, subtitle: str = None):
         if type(subtitle)==str:
@@ -84,17 +87,6 @@ class Gui():
                 ft.Text(title, weight=ft.FontWeight.BOLD, color="black"),
                 "red100"
             )
-    
-    def copy_button(self, text: str):
-        def on_click(e):
-            pyperclip.copy(text)
-            self.popup_notice(Lang.value("common.copy_success"))
-        
-        return ft.IconButton(
-            icon=ft.icons.COPY,
-            tooltip=Lang.value("common.copy"),
-            on_click=on_click
-        )
 
     def directory_button(self, path: str):
         return ft.IconButton(
@@ -123,10 +115,35 @@ class Gui():
 
         self.page.dialog = dialog
         dialog.open = True
-        try:
-            self.page.update()
-        except Exception as e:
-            pass
+        self.safe_update(self.page)
+
+    class CopyButton():
+        def __init__(self, page: ft.Page, text: str = None):
+            self.page = page
+            self.gui = Gui(page)
+            self.text = text
+        
+        def main(self):
+            def on_click(e):
+                pyperclip.copy(self.text)
+                self.gui.popup_notice(Lang.value("common.copy_success"))
+            
+            self.button = ft.IconButton(
+                icon=ft.icons.COPY,
+                tooltip=Lang.value("common.copy"),
+                on_click=on_click
+            )
+            return self.button
+
+        def set(self, text: str = None):
+            self.text = text
+
+            def on_click(e):
+                pyperclip.copy(text)
+                self.gui.popup_notice(Lang.value("common.copy_success"))
+            
+            self.button.on_click = on_click
+            self.gui.safe_update(self.button)  
 
     class ExportButton():
         filename: str
@@ -153,11 +170,7 @@ class Gui():
 
         def set(self, filename: str = None):
             self.filename = filename
-
-            try:
-                self.button.update()
-            except:
-                pass  
+            self.gui.safe_update(self.button)
 
     class UpdateResult():
         page: ft.Page
@@ -182,12 +195,8 @@ class Gui():
                         self._add_list(d["value"], d["title"], d["filename"], d["image_src"], d["mode"], d["reason"], d["description"])
                     elif self.check_error.value and d["mode"]=="error":
                         self._add_list(d["value"], d["title"], d["filename"], d["image_src"], d["mode"], d["reason"], d["description"])
-                try:
-                    self.lists.update()
-                except Exception as e:
-                    pass
-            
-
+                
+                self.gui.safe_update(self.lists)
             
             self.check_success = ft.Checkbox(value=True, label=Lang.value("common.success"), on_change=update_button)
             self.check_skipped = ft.Checkbox(value=False, label=Lang.value("common.skipped"), on_change=update_button)
@@ -212,10 +221,7 @@ class Gui():
 
         def clear(self):
             self.lists.controls.clear()
-            try:
-                self.lists.update()
-            except Exception as e:
-                pass
+            self.gui.safe_update(self.lists)
         
         def append(self, value: dict, title: str, filename: str, image_src: str, mode: str, reason: str, description: str = None):
             self.data.append({
@@ -239,10 +245,7 @@ class Gui():
         
         def _append_list(self, ctrl: ft.Control):
             self.lists.controls.append(ctrl)
-            try:
-                self.lists.update()
-            except Exception as e:
-                pass
+            self.gui.safe_update(self.lists)
         
         def _add_list(self, value: dict, title: str, filename: str, image_src: str, mode: str, reason: str, description: str = None):
             def close_dialog(e):
@@ -267,7 +270,7 @@ class Gui():
                     ft.Text(title, weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM),
                     ft.Row([
                         ft.Text(value.get("uuid", ""), style=ft.TextThemeStyle.BODY_SMALL),
-                        self.gui.copy_button(value.get("uuid", ""))
+                        self.gui.CopyButton(self.page, value.get("uuid", "")).main()
                     ]),
                     ft.Image(src=image_src, width=200, height=200, fit=ft.ImageFit.CONTAIN)
                 ]),
@@ -354,6 +357,7 @@ class Gui():
 
         def __init__(self, page: ft.Page):
             self.page = page
+            self.gui = Gui(page)
         
         def main(self) -> ft.Container:
             self.result = ft.ListTile()
@@ -364,50 +368,35 @@ class Gui():
             self.result.title=ft.Text(title, style=ft.TextThemeStyle.BODY_MEDIUM)
             self.result.subtitle=ft.Text(subtitle, style=ft.TextThemeStyle.BODY_SMALL)
 
-            try:
-                self.result.update()
-            except:
-                pass
+            self.gui.safe_update(self.result)
         
         def warn(self, title: str = None, subtitle: str = None, icon: str = ft.icons.WARNING, icon_color: str = "yellow"):
             self.result.leading=ft.Icon(name=icon, color=icon_color)
             self.result.title=ft.Text(title, style=ft.TextThemeStyle.BODY_MEDIUM)
             self.result.subtitle=ft.Text(subtitle, style=ft.TextThemeStyle.BODY_SMALL)
 
-            try:
-                self.result.update()
-            except:
-                pass
+            self.gui.safe_update(self.result)
         
         def info(self, title: str = None, subtitle: str = None, icon: str = ft.icons.INFO, icon_color: str = "blue"):
             self.result.leading=ft.Icon(name=icon, color=icon_color)
             self.result.title=ft.Text(title, style=ft.TextThemeStyle.BODY_MEDIUM)
             self.result.subtitle=ft.Text(subtitle, style=ft.TextThemeStyle.BODY_SMALL)
 
-            try:
-                self.result.update()
-            except:
-                pass
+            self.gui.safe_update(self.result)
     
         def error(self, title: str = None, subtitle: str = None, icon: str = ft.icons.ERROR_OUTLINE, icon_color: str = "red"):
             self.result.leading=ft.Icon(name=icon, color=icon_color)
             self.result.title=ft.Text(title, style=ft.TextThemeStyle.BODY_MEDIUM)
             self.result.subtitle=ft.Text(subtitle, style=ft.TextThemeStyle.BODY_SMALL)
 
-            try:
-                self.result.update()
-            except:
-                pass
+            self.gui.safe_update(self.result)
         
         def clear(self):
             self.result.leading=None
             self.result.title=None
             self.result.subtitle=None
 
-            try:
-                self.result.update()
-            except:
-                pass
+            self.gui.safe_update(self.result)
 
     class ProgressRing():
         page: ft.Page
@@ -418,6 +407,7 @@ class Gui():
             self.width = width
             self.height = height
             self.stroke_width = stroke_width
+            self.gui = Gui(page)
         
         def main(self):
             self.container = ft.Container()
@@ -430,9 +420,6 @@ class Gui():
                 else:
                     self.container.content = None
 
-                try:
-                    self.container.update()
-                except:
-                    pass
+                self.gui.safe_update(self.container)
             except Exception as e:
                 print(e)

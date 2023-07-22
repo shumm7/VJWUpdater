@@ -9,7 +9,8 @@
         "update": "更新確認",
         "list": "リスト",
         "template": "テンプレート",
-        "esports": "競技シーン"
+        "esports": "競技シーン",
+        "misc": "その他"
     },
     "common": {
         "localize": "ja-JP",
@@ -27,6 +28,8 @@
         "export": "エクスポート",
         "import": "インポート",
         "url": "URL",
+        "output": "出力",
+        "reload": "再読み込み",
         "open_directory": "ディレクトリを開く",
         "preview": "プレビュー",
         "copy_success": "テキストをコピーしました。",
@@ -49,10 +52,25 @@
         "currency": "通貨",
         "event": "イベント",
         "gamemode": "ゲームモード",
+        "price": {
+            "valorant_point": "{price} VP",
+            "kingdom_credit": "{price} KC",
+            "radianite_point": "{price} RP"
+        },
         "error_message": {
+            "login_required": "ログインが必要です。",
             "cookie_expired": "Cookieが期限切れです。",
-            "requests_failed": "リクエストに失敗しました。"
-
+            "requests_failed": "リクエストに失敗しました。",
+            "busy": "数分間待ってから、再度お試しください。",
+            "sent_email": "{email} へログインコードを送信しました。",
+            "2fa_active": "2段階認証が有効化されています。",
+            "2fa_invalid": "ログインコードが間違っています。",
+            "cookie_invalid": "Cookieが不正です。",
+            "incorrect": "ユーザーネームかパスワードが間違っています。",
+            "name_key": "ユーザー名、もしくは、タグラインが取得できませんでした。",
+            "webdriver_notfound": "指定されたページから要素が見つかりませんでした。",
+            "webdriver_timeout": "タイムアウトしました。",
+            "error": "不明なエラーが発生しました。"
         }
     },
     "settings": {
@@ -78,18 +96,7 @@
             "success": "ログインに成功しました。",
             "failed": "ログインに失敗しました。",
             "2fa": "ログインコードを入力",
-            "logincode": "ログインコード",
-            "auth": {
-                "busy": "数分間待ってから、再度お試しください。",
-                "sent_email": "{email} へログインコードを送信しました。",
-                "2fa_active": "2段階認証が有効化されています。",
-                "2fa_invalid": "ログインコードが間違っています。",
-                "incorrect": "ユーザーネームかパスワードが間違っています。",
-                "cookie_expired": "Cookieが期限切れです。",
-                "name_key": "ユーザー名、もしくは、タグラインが取得できませんでした。",
-                "error": "不明なエラーが発生しました。"
-            }
-
+            "logincode": "ログインコード"
         },
         "wikibot": {
             "title": "Wiki Bot ログイン",
@@ -104,6 +111,16 @@
             "title": "ロゴ",
             "src": "ディレクトリ/URL",
             "notice": "空欄にすると自動的にロゴを取得します。"
+        },
+        "webdriver": {
+            "title": "Webdriver",
+            "chrome": "Chrome",
+            "firefox": "Firefox",
+            "edge": "Edge",
+            "brave": "Brave",
+            "button": "テスト",
+            "tooltip": "ブラウザが起動します",
+            "success": "テストに成功しました。"
         }
     },
     "contents": {
@@ -238,11 +255,51 @@
                 "description": "Cite（引用文テンプレート）を生成します。",
                 "toggle_ref_off": "Refタグ: 外す",
                 "toggle_ref_on": "Refタグ: 付ける",
-                "begin": "テンプレートの生成を開始しています",
                 "failed": "Cite テンプレートの生成に失敗しました。",
-                "url": "URLからテンプレートを生成",
-                "button": "URLから取得"
-
+                "url_description": "URLからテンプレートを生成",
+                "button": "URLから取得",
+                "item": {
+                    "url": "URL",
+                    "title": "タイトル",
+                    "author": "作者",
+                    "website": "ウェブサイト",
+                    "date": "日時",
+                    "quote": "引用文",
+                    "section": "節"
+                },
+                "dialog": {
+                    "title": "ページ読み込み設定",
+                    "description": "ページ読み込み時の詳細設定",
+                    "notice": "ブラウザが自動的に起動します",
+                    "wait": "待機時間",
+                    "locale": "ロケール",
+                    "dateformat": "日付フォーマット"
+                }
+            }
+        },
+        "esports": {
+            "matchlist": {
+                "title": "Match List",
+                "description": "Match listテンプレートを生成します。",
+                "match_id": "マッチID",
+                "button": "テンプレートを生成",
+                "tooltip": "VLR.gg の試合結果のリンクかマッチIDを入力",
+                "success": "Match list テンプレートの生成に成功しました。",
+                "failed": "Match list テンプレートの生成に失敗しました。"
+            }
+        },
+        "misc": {
+            "store": {
+                "title": "ストア",
+                "description": "ゲーム内のストアを確認します。",
+                "error": "アカウント情報の取得に失敗しました。",
+                "failed": "ストア情報の取得に失敗しました。",
+                "reload": "読み込み",
+                "offer": "オファー",
+                "featured_bundle": "スキンセット",
+                "accessory_store": "アクセサリーストア",
+                "time": "残り: {day}日 {hour}時間 {minute}分",
+                "own": "所有済み"
             }
         }
     }

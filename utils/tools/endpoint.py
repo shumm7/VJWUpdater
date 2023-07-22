@@ -1,4 +1,6 @@
 import requests
+import datetime
+import asyncio
 import json
 from typing import Any, Mapping
 from utils.tools.localize import Lang
@@ -20,11 +22,17 @@ class Endpoint():
         self.client_platform = 'ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9'
         
         if auth_data.get("puuid")!=None:
+            if datetime.datetime.fromtimestamp(auth_data['expiry_token'])<datetime.datetime.now():
+                asyncio.run(self.auth.refresh_token())
+                auth_data = self.auth.get_auth()
+
             self.headers = self.__build_headers(auth_data)
 
             self.puuid = auth_data["puuid"]
             self.region = auth_data["region"]
             self.player = auth_data["username"]
+        else:
+            raise Exception(Lang.value("common.error_message.login_required"))
 
         self.pd = f"https://pd.{self.region}.a.pvp.net"
         self.shared = f"https://shared.{self.region}.a.pvp.net"
@@ -64,14 +72,43 @@ class Endpoint():
             raise Exception(Lang.value("common.error_message.requests_failed"))
     
 
-    def fetch_player_loadout(self) -> Mapping[str, Any]:
+    def fetch_player_loadout(self, puuid: str = None) -> Mapping[str, Any]:
         """
         playerLoadoutUpdate
         Get the player's current loadout
         """
-        data = self.fetch(url=f'{self.pd}/personalization/v2/players/{self.puuid}/playerloadout')
+        if puuid==None:
+            puuid = self.puuid
+        data = self.fetch(url=f'{self.pd}/personalization/v2/players/{puuid}/playerloadout')
+        return data
+
+    def fetch_offers(self) -> Mapping[str, Any]:
+        """
+        Store_GetOffers
+        Get prices for all store items
+        """
+        data = self.fetch(url=f'{self.pd}/store/v1/offers/')
+        return data
+
+    def fetch_storefront(self, puuid: str = None) -> Mapping[str, Any]:
+        """
+        Store_GetStorefrontV2
+        Get the currently available items in the store
+        """
+        if puuid==None:
+            puuid = self.puuid
+        data = self.fetch(url=f'{self.pd}/store/v2/storefront/{puuid}')
         return data
     
+    def fetch_entitlements(self, puuid: str = None) -> Mapping[str, Any]:
+        """
+        Store_GetEntitlements
+        List what the player owns
+        """
+        if puuid==None:
+            puuid = self.puuid
+        data = self.fetch(url=f'{self.pd}/store/v1/entitlements/{puuid}')
+        return data
 
     def __build_headers(self, data: Mapping) -> Mapping[str, Any]:
         """build headers"""

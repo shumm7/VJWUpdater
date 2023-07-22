@@ -8,3 +8,4 @@ log.txt
 *.spec
 config.json
 auth.json
+geckodriver.log

@@ -23,4 +23,3 @@ class Lang:
             return f"{lang}.{key}"
         else:
             return f"{lang}.{key}"
-        

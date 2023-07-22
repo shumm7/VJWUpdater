@@ -12,7 +12,8 @@ from utils.cogs.update import Update
 from utils.cogs.template import Template
 #from utils.cogs.wikitext import Wikitext
 #from utils.cogs.list import List
-#from utils.cogs.esports import Esports
+from utils.cogs.esports import Esports
+from utils.cogs.misc import Misc
 
 class Core():
     page: ft.Page
@@ -24,7 +25,8 @@ class Core():
     template: Template
     #wikitext: Wikitext
     #list: List
-    #esports: Esports
+    esports: Esports
+    misc: Misc
 
     def __init__(self) -> None:
         ft.app(target=self.set_window)
@@ -42,7 +44,8 @@ class Core():
         self.template = Template(self.wiki, self.gui, self.page)
         #self.wikitext = Wikitext(self.wiki, self.page)
         #self.list = List(self.wiki, self.page)
-        #self.esports = Esports(self.wiki, self.page)      
+        self.esports = Esports(self.wiki, self.gui, self.page)      
+        self.misc = Misc(self.wiki, self.gui, self.page)
     
 
     def set_window(self, page: ft.Page):
@@ -86,6 +89,12 @@ class Core():
                     ft.Tab(
                         text=Lang.value("tabs.esports"),
                         icon=ft.icons.MOUSE,
+                        content=self.esports.main()
+                    ),
+                    ft.Tab(
+                        text=Lang.value("tabs.misc"),
+                        icon=ft.icons.CONSTRUCTION,
+                        content=self.misc.main()
                     ),
                 ],
                 expand=True,

@@ -136,18 +136,18 @@ class Auth:
         elif data['type'] == 'multifactor':
 
             if r.status == 429:
-                raise Exception(Lang.value("settings.riot.auth.busy"))
+                raise Exception(Lang.value("common.error_message.busy"))
 
             WaitFor2FA = {"auth": "2fa", "cookie": cookies}
 
             if data['multifactor']['method'] == 'email':
-                WaitFor2FA['message'] = Lang.value("settings.riot.auth.sent_email").format(email=data['multifactor']['email'])
+                WaitFor2FA['message'] = Lang.value("common.error_message.sent_email").format(email=data['multifactor']['email'])
                 return WaitFor2FA
 
-            WaitFor2FA['message'] = Lang.value("settings.riot.auth.2fa_active")
+            WaitFor2FA['message'] = Lang.value("common.error_message.2fa_active")
             return WaitFor2FA
 
-        raise Exception(Lang.value("settings.riot.auth.incorrect"))
+        raise Exception(Lang.value("common.error_message.incorrect"))
 
     async def get_entitlements_token(self, access_token: str) -> Optional[str]:
         """This function is used to get the entitlements token."""
@@ -162,7 +162,7 @@ class Auth:
         try:
             entitlements_token = data['entitlements_token']
         except KeyError:
-            raise Exception(Lang.value("settings.riot.auth.cookie_expired"))
+            raise Exception(Lang.value("common.error_message.cookie_expired"))
         else:
             return entitlements_token
 
@@ -181,7 +181,7 @@ class Auth:
             name = data['acct']['game_name']
             tag = data['acct']['tag_line']
         except KeyError:
-            raise Exception(Lang.value("settings.riot.auth.name_key"))
+            raise Exception(Lang.value("common.error_message.name_key"))
         else:
             return puuid, name, tag
 
@@ -202,7 +202,7 @@ class Auth:
         try:
             region = data['affinities']['live']
         except KeyError:
-            raise Exception(Lang.value("settings.riot.auth.error"))
+            raise Exception(Lang.value("common.error_message.error"))
         else:
             return region
 
@@ -230,7 +230,7 @@ class Auth:
 
             return {'auth': 'response', 'data': {'cookie': cookies, 'access_token': access_token, 'token_id': token_id}}
 
-        return {'auth': 'failed', 'error': Lang.value("settings.riot.auth.2fa_invalid")}
+        return {'auth': 'failed', 'error': Lang.value("common.error_message.2fa_invalid")}
 
     async def redeem_cookies(self, cookies: Dict) -> Tuple[Dict[str, Any], str, str]:
         """This function is used to redeem the cookies."""
@@ -251,7 +251,7 @@ class Auth:
             data = await r.text()
 
         if r.status != 303:
-            raise Exception(Lang.value("settings.riot.auth.cookie_expired"))
+            raise Exception(Lang.value("common.error_message.cookie_expired"))
 
         old_cookie = cookies.copy()
 
@@ -266,49 +266,19 @@ class Auth:
 
         return new_cookies, accessToken, entitlements_token
 
-    # next update
+    async def refresh_token(self) -> Tuple[Dict[str, Any], str, str]:
+        auth_data = self.get_auth()
 
-    async def login_with_cookie(self, cookies: Dict) -> Dict[str, Any]:
-        """This function is used to log in with cookie."""
+        cookies, access_token, entitlements_token = await self.redeem_cookies(auth_data["cookie"])
+        expired_cookie = datetime.timestamp(datetime.utcnow() + timedelta(minutes=59))
 
-        cookie_payload = f'ssid={cookies};' if cookies.startswith('e') else cookies
+        auth_data['cookie'] = cookies['cookie']
+        auth_data['access_token'] = access_token
+        auth_data['emt'] = entitlements_token
+        auth_data['expiry_token'] = expired_cookie
 
-        self._headers['cookie'] = cookie_payload
+        JSON.save("auth.json", auth_data)
 
-        session = ClientSession()
-
-        r = await session.get(
-            "https://auth.riotgames.com/authorize"
-            "?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in"
-            "&client_id=play-valorant-web-prod"
-            "&response_type=token%20id_token"
-            "&scope=account%20openid"
-            "&nonce=1",
-            allow_redirects=False,
-            headers=self._headers,
-        )
-
-        # pop cookie
-        self._headers.pop('cookie')
-
-        if r.status != 303:
-            raise Exception("Invalid cookie.")
-
-        await session.close()
-
-        # NEW COOKIE
-        new_cookies = {'cookie': {}}
-        for cookie in r.cookies.items():
-            new_cookies['cookie'][cookie[0]] = str(cookie).split('=')[1].split(';')[0]
-
-        accessToken, tokenID = _extract_tokens_from_uri(await r.text())
-        entitlements_token = await self.get_entitlements_token(accessToken)
-
-        data = {'cookies': new_cookies, 'AccessToken': accessToken, 'token_id': tokenID, 'emt': entitlements_token}
-        return data
-
-    async def refresh_token(self, cookies: Dict) -> Tuple[Dict[str, Any], str, str]:
-        return await self.redeem_cookies(cookies)
 
 class RiotAccount():
     page: ft.Page

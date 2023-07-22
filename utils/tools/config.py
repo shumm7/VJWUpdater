@@ -10,7 +10,8 @@ class Config:
         "wikibot": {
             "id": "",
             "password": ""
-        }
+        },
+        "webdriver": "chrome"
     }
 
     def read() -> dict:

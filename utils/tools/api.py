@@ -219,6 +219,14 @@ class API:
                 return agent
         return None
 
+    def bundle_by_uuid(uuid: str) -> dict:
+        bundles = JSON.read("api/bundles.json")
+
+        for bundle in bundles:
+            if bundle["uuid"] == uuid:
+                return bundle
+        return None
+
     def buddy_by_uuid(uuid: str) -> dict:
         buddies = JSON.read("api/buddies.json")
 
@@ -260,3 +268,90 @@ class API:
                 return playertitle
         return None
     
+    def skin_by_skinlevel_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/weapons/skinlevels/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+    
+    def weapon_by_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/weapons/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+    
+    def skin_by_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/weapons/skins/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+    
+    def skin_by_skinchroma_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/weapons/skinchromas/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+        
+
+    def type_by_item_type_id(uuid: str) -> str:
+        if uuid=="d5f120f8-ff8c-4aac-92ea-f2b5acbe9475":
+            return "sprays"
+        elif uuid=="3f296c07-64c3-494c-923b-fe692a4fa1bd":
+            return "playercards"
+        elif uuid=="dd3bf334-87f3-40bd-b043-682a57a8dc3a":
+            return "buddies"
+        elif uuid=="e7c63390-eda7-46e0-bb7a-a6abdacd2433":
+            return "skins"
+        elif uuid=="3ad1b2b2-acdb-4524-852f-954a76ddae0a":
+            return "variants"
+        elif uuid=="01bb38e1-da47-4e6a-9b3d-945fe4655707":
+            return "agents"
+        elif uuid=="de7caa6b-adf7-4588-bbd1-143831e786c6":
+            return "playertitles"
+        elif uuid=="f85cb6f7-33e5-4dc8-b609-ec7212301948":
+            return "contracts"
+        else:
+            return ""
+    
+    def type_id_by_type(type: str) -> str:
+        if type=="sprays":
+            return "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475"
+        elif type=="playercards":
+            return "3f296c07-64c3-494c-923b-fe692a4fa1bd"
+        elif type=="buddies":
+            return "dd3bf334-87f3-40bd-b043-682a57a8dc3a"
+        elif type=="skins":
+            return "e7c63390-eda7-46e0-bb7a-a6abdacd2433"
+        elif type=="variants":
+            return "3ad1b2b2-acdb-4524-852f-954a76ddae0a"
+        elif type=="agents":
+            return "01bb38e1-da47-4e6a-9b3d-945fe4655707"
+        elif type=="playertitles":
+            return "de7caa6b-adf7-4588-bbd1-143831e786c6"
+        elif type=="contracts":
+            return "f85cb6f7-33e5-4dc8-b609-ec7212301948"
+        else:
+            return ""
+    
+    def entitlements_from_type_id(uuid: str, entitlements: dict) -> list:
+        value = []
+        try:
+            for entitlement in entitlements.get("EntitlementsByTypes", []):
+                if entitlement.get("ItemTypeID")==uuid:
+                    for item in entitlement.get("Entitlements", []):
+                        value.append(item.get("ItemID"))
+            return value
+        except KeyError:
+            return []

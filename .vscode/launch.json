@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "テスト実行",
+            "name": "実行",
             "type": "python",
             "request": "launch",
             "program": "main.py",
@@ -17,6 +17,14 @@
             "type": "python",
             "request": "launch",
             "program": "build.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "テスト",
+            "type": "python",
+            "request": "launch",
+            "program": "test.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }

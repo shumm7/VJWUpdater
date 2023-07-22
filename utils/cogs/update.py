@@ -28,21 +28,19 @@ class Update():
 
         def on_clicked(e):
             i = e.control.selected_index
+            contents = [
+                self.playercard.main(),
+                self.spray.main(),
+                self.buddy.main(),
+                self.competitivetier.main(),
+                self.agent.main()
+            ]
 
-            if i==0:
-                self.content.content = self.playercard.main()
-            elif i==1:
-                self.content.content = self.spray.main()
-            elif i==2:
-                self.content.content = self.buddy.main()
-            elif i==3:
-                self.content.content = self.competitivetier.main()
-            elif i==4:
-                self.content.content = self.agent.main()
             try:
-                self.content.update()
-            except Exception as e:
+                self.content.content = contents[i]
+            except IndexError:
                 pass
+            self.gui.safe_update(self.content)
             
 
         return ft.Row(

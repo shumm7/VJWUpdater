@@ -1,0 +1,873 @@
+{
+  "match": [
+    {
+      "map": "ascent",
+      "duration": "52:21",
+      "score": [
+        13,
+        4
+      ],
+      "round": {
+        "1": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "2": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "3": {
+          "team": 1,
+          "type": "elimination",
+          "side": "defender"
+        },
+        "4": {
+          "team": 1,
+          "type": "defuse",
+          "side": "defender"
+        },
+        "5": {
+          "team": 1,
+          "type": "elimination",
+          "side": "defender"
+        },
+        "6": {
+          "team": 1,
+          "type": "defuse",
+          "side": "defender"
+        },
+        "7": {
+          "team": 1,
+          "type": "elimination",
+          "side": "defender"
+        },
+        "8": {
+          "team": 1,
+          "type": "defuse",
+          "side": "defender"
+        },
+        "9": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "10": {
+          "team": 1,
+          "type": "defuse",
+          "side": "defender"
+        },
+        "11": {
+          "team": 1,
+          "type": "elimination",
+          "side": "defender"
+        },
+        "12": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "13": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "14": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "15": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "16": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "17": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        }
+      },
+      "player": [
+        [
+          {
+            "name": "leaf",
+            "agent": "Jett",
+            "rating": 1.47,
+            "acs": 310,
+            "kill": 20,
+            "death": 12,
+            "assist": 6,
+            "kast": 76,
+            "adr": 193,
+            "hs%": 18,
+            "fk": 4,
+            "fd": 3
+          },
+          {
+            "name": "runi",
+            "agent": "Viper",
+            "rating": 1.33,
+            "acs": 201,
+            "kill": 14,
+            "death": 7,
+            "assist": 5,
+            "kast": 94,
+            "adr": 150,
+            "hs%": 30,
+            "fk": 2,
+            "fd": 0
+          },
+          {
+            "name": "jakee",
+            "agent": "Omen",
+            "rating": 1.24,
+            "acs": 221,
+            "kill": 15,
+            "death": 11,
+            "assist": 9,
+            "kast": 82,
+            "adr": 138,
+            "hs%": 38,
+            "fk": 3,
+            "fd": 1
+          },
+          {
+            "name": "Zellsis",
+            "agent": "Killjoy",
+            "rating": 1.17,
+            "acs": 182,
+            "kill": 11,
+            "death": 8,
+            "assist": 2,
+            "kast": 76,
+            "adr": 117,
+            "hs%": 13,
+            "fk": 2,
+            "fd": 0
+          },
+          {
+            "name": "Xeppaa",
+            "agent": "Skye",
+            "rating": 1.24,
+            "acs": 260,
+            "kill": 15,
+            "death": 11,
+            "assist": 11,
+            "kast": 94,
+            "adr": 167,
+            "hs%": 33,
+            "fk": 1,
+            "fd": 1
+          }
+        ],
+        [
+          {
+            "name": "NagZ",
+            "agent": "Killjoy",
+            "rating": 0.6,
+            "acs": 147,
+            "kill": 8,
+            "death": 14,
+            "assist": 2,
+            "kast": 59,
+            "adr": 120,
+            "hs%": 20,
+            "fk": 1,
+            "fd": 1
+          },
+          {
+            "name": "DaveeyS",
+            "agent": "Kayo",
+            "rating": 0.8,
+            "acs": 183,
+            "kill": 10,
+            "death": 16,
+            "assist": 7,
+            "kast": 65,
+            "adr": 123,
+            "hs%": 39,
+            "fk": 2,
+            "fd": 3
+          },
+          {
+            "name": "Melser",
+            "agent": "Omen",
+            "rating": 0.87,
+            "acs": 215,
+            "kill": 12,
+            "death": 15,
+            "assist": 5,
+            "kast": 71,
+            "adr": 137,
+            "hs%": 26,
+            "fk": 2,
+            "fd": 0
+          },
+          {
+            "name": "Klaus",
+            "agent": "Sova",
+            "rating": 0.77,
+            "acs": 182,
+            "kill": 12,
+            "death": 15,
+            "assist": 3,
+            "kast": 71,
+            "adr": 126,
+            "hs%": 28,
+            "fk": 0,
+            "fd": 0
+          },
+          {
+            "name": "keznit",
+            "agent": "Jett",
+            "rating": 0.56,
+            "acs": 124,
+            "kill": 7,
+            "death": 15,
+            "assist": 6,
+            "kast": 65,
+            "adr": 97,
+            "hs%": 29,
+            "fk": 0,
+            "fd": 8
+          }
+        ]
+      ]
+    },
+    {
+      "map": "pearl",
+      "duration": "41:06",
+      "score": [
+        4,
+        13
+      ],
+      "round": {
+        "1": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "2": {
+          "team": 2,
+          "type": "detonate",
+          "side": "attacker"
+        },
+        "3": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "4": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "5": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "6": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "7": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "8": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "9": {
+          "team": 2,
+          "type": "detonate",
+          "side": "attacker"
+        },
+        "10": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "11": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "12": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "13": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "14": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "15": {
+          "team": 1,
+          "type": "detonate",
+          "side": "attacker"
+        },
+        "16": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "17": {
+          "team": 2,
+          "type": "defuse",
+          "side": "defender"
+        }
+      },
+      "player": [
+        [
+          {
+            "name": "leaf",
+            "agent": "Jett",
+            "rating": 0.96,
+            "acs": 237,
+            "kill": 15,
+            "death": 15,
+            "assist": 4,
+            "kast": 71,
+            "adr": 196,
+            "hs%": 52,
+            "fk": 1,
+            "fd": 2
+          },
+          {
+            "name": "runi",
+            "agent": "Killjoy",
+            "rating": 0.56,
+            "acs": 174,
+            "kill": 9,
+            "death": 15,
+            "assist": 2,
+            "kast": 65,
+            "adr": 112,
+            "hs%": 28,
+            "fk": 2,
+            "fd": 2
+          },
+          {
+            "name": "jakee",
+            "agent": "Viper",
+            "rating": 0.71,
+            "acs": 167,
+            "kill": 9,
+            "death": 15,
+            "assist": 4,
+            "kast": 65,
+            "adr": 111,
+            "hs%": 32,
+            "fk": 1,
+            "fd": 2
+          },
+          {
+            "name": "Zellsis",
+            "agent": "Harbor",
+            "rating": 0.64,
+            "acs": 137,
+            "kill": 7,
+            "death": 13,
+            "assist": 2,
+            "kast": 59,
+            "adr": 102,
+            "hs%": 13,
+            "fk": 0,
+            "fd": 3
+          },
+          {
+            "name": "Xeppaa",
+            "agent": "Skye",
+            "rating": 0.22,
+            "acs": 102,
+            "kill": 5,
+            "death": 17,
+            "assist": 3,
+            "kast": 29,
+            "adr": 62,
+            "hs%": 13,
+            "fk": 0,
+            "fd": 4
+          }
+        ],
+        [
+          {
+            "name": "NagZ",
+            "agent": "Viper",
+            "rating": 1.96,
+            "acs": 279,
+            "kill": 19,
+            "death": 4,
+            "assist": 7,
+            "kast": 100,
+            "adr": 177,
+            "hs%": 27,
+            "fk": 2,
+            "fd": 0
+          },
+          {
+            "name": "DaveeyS",
+            "agent": "Killjoy",
+            "rating": 1.46,
+            "acs": 195,
+            "kill": 13,
+            "death": 6,
+            "assist": 3,
+            "kast": 82,
+            "adr": 149,
+            "hs%": 26,
+            "fk": 1,
+            "fd": 0
+          },
+          {
+            "name": "Melser",
+            "agent": "Harbor",
+            "rating": 1.25,
+            "acs": 183,
+            "kill": 11,
+            "death": 9,
+            "assist": 11,
+            "kast": 71,
+            "adr": 121,
+            "hs%": 24,
+            "fk": 1,
+            "fd": 2
+          },
+          {
+            "name": "Klaus",
+            "agent": "Skye",
+            "rating": 1.21,
+            "acs": 254,
+            "kill": 17,
+            "death": 12,
+            "assist": 7,
+            "kast": 100,
+            "adr": 157,
+            "hs%": 20,
+            "fk": 4,
+            "fd": 0
+          },
+          {
+            "name": "keznit",
+            "agent": "Jett",
+            "rating": 1.15,
+            "acs": 263,
+            "kill": 15,
+            "death": 14,
+            "assist": 10,
+            "kast": 82,
+            "adr": 167,
+            "hs%": 25,
+            "fk": 5,
+            "fd": 2
+          }
+        ]
+      ]
+    },
+    {
+      "map": "haven",
+      "duration": "42:06",
+      "score": [
+        6,
+        13
+      ],
+      "round": {
+        "1": {
+          "team": 1,
+          "type": "defuse",
+          "side": "defender"
+        },
+        "2": {
+          "team": 1,
+          "type": "elimination",
+          "side": "defender"
+        },
+        "3": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "4": {
+          "team": 2,
+          "type": "detonate",
+          "side": "attacker"
+        },
+        "5": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "6": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "7": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "8": {
+          "team": 1,
+          "type": "elimination",
+          "side": "defender"
+        },
+        "9": {
+          "team": 1,
+          "type": "elimination",
+          "side": "defender"
+        },
+        "10": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "11": {
+          "team": 2,
+          "type": "detonate",
+          "side": "attacker"
+        },
+        "12": {
+          "team": 2,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "13": {
+          "team": 1,
+          "type": "elimination",
+          "side": "attacker"
+        },
+        "14": {
+          "team": 1,
+          "type": "detonate",
+          "side": "attacker"
+        },
+        "15": {
+          "team": 2,
+          "type": "elimination",
+          "side": "defender"
+        },
+        "16": {
+          "team": 2,
+          "type": "defuse",
+          "side": "defender"
+        },
+        "17": {
+          "team": 2,
+          "type": "defuse",
+          "side": "defender"
+        },
+        "18": {
+          "team": 2,
+          "type": "defuse",
+          "side": "defender"
+        },
+        "19": {
+          "team": 2,
+          "type": "defuse",
+          "side": "defender"
+        }
+      },
+      "player": [
+        [
+          {
+            "name": "leaf",
+            "agent": "Jett",
+            "rating": 0.88,
+            "acs": 207,
+            "kill": 13,
+            "death": 15,
+            "assist": 2,
+            "kast": 68,
+            "adr": 138,
+            "hs%": 27,
+            "fk": 4,
+            "fd": 6
+          },
+          {
+            "name": "runi",
+            "agent": "Viper",
+            "rating": 0.87,
+            "acs": 147,
+            "kill": 11,
+            "death": 13,
+            "assist": 6,
+            "kast": 68,
+            "adr": 97,
+            "hs%": 29,
+            "fk": 0,
+            "fd": 0
+          },
+          {
+            "name": "jakee",
+            "agent": "Omen",
+            "rating": 0.74,
+            "acs": 208,
+            "kill": 13,
+            "death": 16,
+            "assist": 7,
+            "kast": 74,
+            "adr": 126,
+            "hs%": 32,
+            "fk": 1,
+            "fd": 3
+          },
+          {
+            "name": "Zellsis",
+            "agent": "Killjoy",
+            "rating": 0.67,
+            "acs": 173,
+            "kill": 10,
+            "death": 17,
+            "assist": 6,
+            "kast": 68,
+            "adr": 120,
+            "hs%": 20,
+            "fk": 2,
+            "fd": 2
+          },
+          {
+            "name": "Xeppaa",
+            "agent": "Skye",
+            "rating": 0.69,
+            "acs": 112,
+            "kill": 6,
+            "death": 15,
+            "assist": 9,
+            "kast": 58,
+            "adr": 75,
+            "hs%": 12,
+            "fk": 0,
+            "fd": 1
+          }
+        ],
+        [
+          {
+            "name": "NagZ",
+            "agent": "Killjoy",
+            "rating": 1.12,
+            "acs": 158,
+            "kill": 11,
+            "death": 9,
+            "assist": 3,
+            "kast": 79,
+            "adr": 101,
+            "hs%": 29,
+            "fk": 2,
+            "fd": 0
+          },
+          {
+            "name": "DaveeyS",
+            "agent": "Chamber",
+            "rating": 1.13,
+            "acs": 186,
+            "kill": 14,
+            "death": 10,
+            "assist": 3,
+            "kast": 68,
+            "adr": 116,
+            "hs%": 28,
+            "fk": 2,
+            "fd": 3
+          },
+          {
+            "name": "Melser",
+            "agent": "Astra",
+            "rating": 1.22,
+            "acs": 235,
+            "kill": 16,
+            "death": 11,
+            "assist": 9,
+            "kast": 95,
+            "adr": 148,
+            "hs%": 34,
+            "fk": 3,
+            "fd": 3
+          },
+          {
+            "name": "Klaus",
+            "agent": "Skye",
+            "rating": 1.35,
+            "acs": 272,
+            "kill": 19,
+            "death": 11,
+            "assist": 8,
+            "kast": 68,
+            "adr": 155,
+            "hs%": 21,
+            "fk": 3,
+            "fd": 1
+          },
+          {
+            "name": "keznit",
+            "agent": "Raze",
+            "rating": 1.48,
+            "acs": 266,
+            "kill": 16,
+            "death": 12,
+            "assist": 11,
+            "kast": 84,
+            "adr": 199,
+            "hs%": 20,
+            "fk": 2,
+            "fd": 0
+          }
+        ]
+      ]
+    }
+  ],
+  "player": [
+    [
+      {
+        "name": "leaf",
+        "rating": 1.1,
+        "acs": 251,
+        "kill": 48,
+        "death": 42,
+        "assist": 12,
+        "kast": 72,
+        "adr": 174,
+        "hs%": 29,
+        "fk": 9,
+        "fd": 11
+      },
+      {
+        "name": "runi",
+        "rating": 0.92,
+        "acs": 174,
+        "kill": 34,
+        "death": 35,
+        "assist": 13,
+        "kast": 75,
+        "adr": 119,
+        "hs%": 29,
+        "fk": 4,
+        "fd": 2
+      },
+      {
+        "name": "jakee",
+        "rating": 0.9,
+        "acs": 199,
+        "kill": 37,
+        "death": 42,
+        "assist": 20,
+        "kast": 74,
+        "adr": 125,
+        "hs%": 34,
+        "fk": 5,
+        "fd": 6
+      },
+      {
+        "name": "Zellsis",
+        "rating": 0.83,
+        "acs": 164,
+        "kill": 28,
+        "death": 38,
+        "assist": 10,
+        "kast": 68,
+        "adr": 113,
+        "hs%": 15,
+        "fk": 4,
+        "fd": 5
+      },
+      {
+        "name": "Xeppaa",
+        "rating": 0.72,
+        "acs": 158,
+        "kill": 26,
+        "death": 43,
+        "assist": 23,
+        "kast": 60,
+        "adr": 100,
+        "hs%": 20,
+        "fk": 1,
+        "fd": 6
+      }
+    ],
+    [
+      {
+        "name": "NagZ",
+        "rating": 1.23,
+        "acs": 195,
+        "kill": 38,
+        "death": 27,
+        "assist": 12,
+        "kast": 79,
+        "adr": 132,
+        "hs%": 25,
+        "fk": 5,
+        "fd": 1
+      },
+      {
+        "name": "DaveeyS",
+        "rating": 1.13,
+        "acs": 188,
+        "kill": 37,
+        "death": 32,
+        "assist": 13,
+        "kast": 72,
+        "adr": 129,
+        "hs%": 30,
+        "fk": 5,
+        "fd": 6
+      },
+      {
+        "name": "Melser",
+        "rating": 1.11,
+        "acs": 211,
+        "kill": 39,
+        "death": 35,
+        "assist": 25,
+        "kast": 79,
+        "adr": 136,
+        "hs%": 28,
+        "fk": 6,
+        "fd": 5
+      },
+      {
+        "name": "Klaus",
+        "rating": 1.11,
+        "acs": 236,
+        "kill": 48,
+        "death": 38,
+        "assist": 18,
+        "kast": 79,
+        "adr": 147,
+        "hs%": 23,
+        "fk": 7,
+        "fd": 1
+      },
+      {
+        "name": "keznit",
+        "rating": 1.06,
+        "acs": 218,
+        "kill": 38,
+        "death": 41,
+        "assist": 27,
+        "kast": 77,
+        "adr": 156,
+        "hs%": 24,
+        "fk": 7,
+        "fd": 10
+      }
+    ]
+  ]
+}

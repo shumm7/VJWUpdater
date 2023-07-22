@@ -25,15 +25,16 @@ class Cache():
 
         def on_clicked(e):
             i = e.control.selected_index
+            contents = [
+                self.version_check.main(),
+                self.fetch.main()
+            ]
 
-            if i==0:
-                self.content.content = self.version_check.main()
-            elif i==1:
-                self.content.content = self.fetch.main()
             try:
-                self.content.update()
-            except Exception as e:
+                self.content.content = contents[i]
+            except IndexError:
                 pass
+            self.gui.safe_update(self.content)
             
 
         card = ft.Row(
@@ -120,6 +121,7 @@ class VersionCheck():
                 self.gui.popup_error(Lang.value("contents.cache.check.failed"), str(e))
 
             finally:
+                self.update_state("")
                 self.loading.state(False)
 
         return ft.Column(

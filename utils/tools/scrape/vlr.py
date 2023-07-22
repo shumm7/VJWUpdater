@@ -2,7 +2,7 @@ import requests, bs4, datetime
 from utils.tools.api import API
 from utils.tools.wiki import Wiki
 
-class VLR():
+class Match():
     match_id: str
     url: str
     soup: bs4.BeautifulSoup
@@ -11,77 +11,61 @@ class VLR():
         self.match_id = match_id
         self.url = f"https://www.vlr.gg/{match_id}"
 
-        res = requests.get(self.url)
-        res.raise_for_status()
-        self.soup = bs4.BeautifulSoup(res.text, "html.parser")
-    
-    def get_data(self) -> dict:
-        team = self.get_team()
-        team_short = self.get_team_short()
-        score = self.get_map_count()
-        players = self.get_players()
-        map_veto = self.get_map_veto()
-        match = self.get_match()
-        date = self.get_date()
-        patch = self.get_patch()
-        vod = self.get_vods()
+        html = requests.get(self.url)
+        html.raise_for_status()
+        self.soup = bs4.BeautifulSoup(html.text, "html.parser")
 
-
-        return {
-            "date": date,
-            "patch": patch,
-            "vlr": {
-                "url": self.url,
-                "id": self.match_id
-            },
-            "team": {
-                "long": team,
-                "short": team_short
-            },
-            "player": players,
-            "score": score,
-            "map_veto": map_veto,
-            "match": match,
-            "vod": vod
-        }
-
-    def get_team(self) -> tuple[str]:
-        res = []
+        # team
+        teams = []
         for e in self.soup.select(".match-header-link-name .wf-title-med"):
-            res.append(e.get_text(strip=True))
-        return (res[0], res[1])
+            teams.append(e.get_text(strip=True))
+        self.team = (teams[0], teams[1])
 
-    def get_team_short(self) -> tuple[str]:
-        res = []
-
+        # team shortname
+        teams_short = []
         sp = self.soup.find("div", {"class": "vm-stats-game", "data-game-id": "all"})
         for tbl in sp.select(".mod-overview"):
             short = tbl.select_one(".mod-player .ge-text-light").get_text(strip=True)
-            res.append(short)
-        return (res[0], res[1])
+            teams_short.append(short)
+        self.team_short = (teams_short[0], teams_short[1])
 
-    def get_map_count(self) -> tuple[int]:
-        res = []
+        # map count
+        map_count = []
         for e in self.soup.select(".match-header-vs-score-winner, .match-header-vs-score-loser"):
-            res.append(int(e.get_text(strip=True)))
-        return (res[0], res[1])
-    
-    def get_patch(self) -> str:
+            map_count.append(int(e.get_text(strip=True)))
+        self.map_count = (map_count[0], map_count[1])
+
+        # patch
+        patch: str
         for e in self.soup.select_one(".match-header-date").select("div"):
             if not "moment-tz-convert" in e.attrs.get("class", []):
-                return e.getText(strip=True).replace("Patch ", "")
-    
-    def get_date(self) -> str:
+                patch = e.getText(strip=True).replace("Patch ", "")
+                break
+        self.patch = patch
+
+        # date
+        date: str
         for e in self.soup.select_one(".match-header-date").select("div"):
             if "moment-tz-convert" in e.attrs.get("class", []):
-                return e.attrs["data-utc-ts"]
-    
-    def get_players(self) -> list:
+                date = e.attrs["data-utc-ts"]
+                break
+        self.date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+
+        # event id
+        event_id: str = self.soup.select_one("a.match-header-event").attrs["href"]
+        self.event_id = event_id.split("/")[2]
+
+        # event / series
+        event_data = self.soup.select_one("a.match-header-event div")
+        self.event: str = event_data.select_one(":not(.match-header-event-series)").get_text(strip=True).replace("\t", "").replace("\n", "")
+        self.series: str = event_data.select_one(".match-header-event-series").get_text(strip=True).replace("\t", "").replace("\n", "")
+        
+        # players
         players: list = []
         div = self.soup.find("div", {"class":"vm-stats-game", "data-game-id":"all"})
 
         for tbl in div.select("table.mod-overview > tbody"):
-            player_team = {}
+            player_team = []
             for tr in tbl.find_all("tr"):
                 player = {}
                 player["name"] = tr.select_one("td.mod-player > div div").get_text(strip=True)
@@ -110,14 +94,61 @@ class VLR():
                     elif i==11:
                         player["fd"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
                     i = i + 1
-                player_team[player["name"]] = player
+                player_team.append(player)
             players.append(player_team)
 
-        return players
+        self.player = players
+
+        # match
+        self.match = self._get_match()
+
+        # vod
+        vods = []
+        for e in self.soup.select(".match-vods .match-streams-container a"):
+            vods.append(e.attrs["href"])
+        self.vod = vods
+
+        # map veto
+        map_veto = []
+
+        for e in self.soup.select(".match-header-note"):
+            map_veto_text = e.get_text(strip=True)
+
+            for text in map_veto_text.split(";"):
+                text = text.strip()
+                s: list = text.split(" ")
+
+                if len(s)==2:
+                    map_veto.append({
+                        "map": s[0].strip().lower(),
+                        "team": 0,
+                        "action": "pick"
+                    })
+                elif len(s)==3:
+                    team = s[0].strip()
+                    if teams_short[0]==s[0]:
+                        team = 1
+                    elif teams_short[1]==s[0]:
+                        team = 2
+                    else:
+                        team = 0
+
+                    map_veto.append({
+                        "map": s[2].strip().lower(),
+                        "team": team,
+                        "action": s[1].strip().lower()
+                    })
+        self.map_veto = map_veto
 
 
-    def get_match(self) -> list[str]:
+    def _get_match(self) -> list[str]:
         r = []
+
+        # Player Sort
+        player_sort_list = [[], []]
+        for i in range(2):
+            for p in self.player[i]:
+                player_sort_list[i].append(p["name"])
         
         # Get Map name
         map_dict={}
@@ -148,7 +179,11 @@ class VLR():
 
                 # duration
                 header_div = div.select_one(".vm-stats-game-header")
-                res["duration"] = header_div.select_one(".map-duration").get_text(strip=True)
+                duration = header_div.select_one(".map-duration").get_text(strip=True)
+                if duration.count(":")==1:
+                    res["duration"] = datetime.timedelta(minutes=int(duration[0]), seconds=int(duration[1]))
+                elif duration.count(":")==2:
+                    res["duration"] = datetime.timedelta(hours=int(duration[0]), minutes=int(duration[1]), seconds=int(duration[2]))
 
                 # score
                 score: list = []
@@ -201,6 +236,7 @@ class VLR():
                 res["round"] = rounds
 
                 # player
+                j = 0
                 players: list = []
                 for tbl in div.select("table.mod-overview > tbody"):
                     player_team = {}
@@ -238,7 +274,15 @@ class VLR():
                                 player["fd"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
                             i = i + 1
                         player_team[player["name"]] = player
-                    players.append(player_team)
+                    
+                    player_team_sorted: list = []
+                    for p in player_sort_list[j]:
+                        try:
+                            player_team_sorted.append(player_team[p])
+                        except KeyError:
+                            pass
+                    players.append(player_team_sorted)
+                    j = j + 1
 
                 res["player"] = players
 
@@ -248,46 +292,8 @@ class VLR():
                 
         return r
 
-    def get_map_veto(self) -> list[str]:
-        res = []
-        short = self.get_team_short()
 
-        for e in self.soup.select(".match-header-note"):
-            map_veto_text = e.get_text(strip=True)
-
-            for text in map_veto_text.split(";"):
-                text = text.strip()
-                s: list = text.split(" ")
-
-                if len(s)==2:
-                    res.append({
-                        "map": s[0].strip().lower(),
-                        "team": 0,
-                        "action": "pick"
-                    })
-                elif len(s)==3:
-                    team = s[0].strip()
-                    if short[0]==s[0]:
-                        team = 1
-                    elif short[1]==s[0]:
-                        team = 2
-                    else:
-                        team = 0
-
-                    res.append({
-                        "map": s[2].strip().lower(),
-                        "team": team,
-                        "action": s[1].strip().lower()
-                    })
-        return res
-
-    def get_vods(self) -> list[str]:
-        res = []
-        for e in self.soup.select(".match-vods .match-streams-container a"):
-            res.append(e.attrs["href"])
-        return res
-
-class VLR_Event():
+class Event():
     event_id: str
     url: str
     soup: bs4.BeautifulSoup
