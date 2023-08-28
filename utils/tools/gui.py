@@ -5,6 +5,7 @@ from utils.tools.json import JSON
 
 class Gui():
     page: ft.Page
+    file_picker: ft.FilePicker
 
     def __init__(self, page: ft.Page) -> None:
         self.page = page

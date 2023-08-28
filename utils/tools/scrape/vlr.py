@@ -1,4 +1,7 @@
-import requests, bs4, datetime
+import requests
+import bs4
+import datetime
+import urllib.parse
 from utils.tools.api import API
 from utils.tools.wiki import Wiki
 
@@ -140,6 +143,24 @@ class Match():
                     })
         self.map_veto = map_veto
 
+    def get_dict(self) -> dict:
+        return {
+            "match_id": self.match_id,
+            "url": self.url,
+            "team": self.team,
+            "team_short": self.team_short,
+            "map_count": self.map_count,
+            "patch": self.patch,
+            "date": self.date,
+            "event": self.event,
+            "event_id": self.event_id,
+            "series": self.series,
+            "match": self.match,
+            "player": self.player,
+            "map_veto": self.map_veto,
+            "vod": self.vod
+
+        }
 
     def _get_match(self) -> list[str]:
         r = []
@@ -179,7 +200,7 @@ class Match():
 
                 # duration
                 header_div = div.select_one(".vm-stats-game-header")
-                duration = header_div.select_one(".map-duration").get_text(strip=True)
+                duration = header_div.select_one(".map-duration").get_text(strip=True).split(":")
                 if duration.count(":")==1:
                     res["duration"] = datetime.timedelta(minutes=int(duration[0]), seconds=int(duration[1]))
                 elif duration.count(":")==2:
@@ -296,63 +317,72 @@ class Match():
 class Event():
     event_id: str
     url: str
-    soup: bs4.BeautifulSoup
 
-    def __init__(self, event_id: str, event_name: str = "") -> None:
+    def __init__(self, event_id: str) -> None:
         self.event_id = event_id
-        self.url = f"https://www.vlr.gg/event/{event_id}/{event_name}"
+        self.url = f"https://www.vlr.gg/event/{event_id}"
 
         res = requests.get(self.url)
         res.raise_for_status()
         self.soup = bs4.BeautifulSoup(res.text, "html.parser")
-    
-    def get_data(self) -> dict:
-        title = self.get_title()
-        description= self.get_description()
-        section = self.get_section()
-        date = self.get_date()
-        prize = self.get_prize()
-        location = self.get_location()
-        rosters = self.get_rosters()
+        event_desc = self.soup.select_one(".event-desc-inner")
 
+        # title
+        self.title = event_desc.select_one(".wf-title").get_text(strip=True)
+
+        #id
+        nav = self.soup.select_one(".wf-nav")
+        for n in nav.select("a.wf-nav-item"):
+            if n.select_one(".wf-nav-item-title").get_text(strip=True) == "Overview":
+                self.id = n.attrs["href"].split("/")[-1]
+                break
+        
+        # roster
+        self.roster = self._get_roster(self.soup)
+
+        # events list
+        self.event = {}
+        for e in self.soup.select(".wf-subnav a"):
+            url = "https://www.vlr.gg" + e.attrs["href"]
+            title = e.select_one(".wf-subnav-item-title").get_text(strip=True)
+
+            p = urllib.parse.urlparse(url)
+            id = p.path.split("/")[-1]
+            
+            res = requests.get(url)
+            res.raise_for_status()
+            _soup = bs4.BeautifulSoup(res.text, "html.parser")
+
+            self.event[id] = {
+                "title": title,
+                "url": url,
+                "id": id,
+                "roster": self._get_roster(_soup)
+            }
+        
+        # match
+        stages = self._get_series_id()
+
+        self.match = {}
+        for stage in stages:
+            self.match[stage["id"]] = {
+                "title": stage["name"],
+                "match": self._get_match_id(stage["id"]),
+                "id": stage["id"]
+            }
+    
+    def get_dict(self) -> dict:
         return {
-            "title": title,
-            "description": description,
-            "section": section,
-            "date": date,
-            "prize": prize,
-            "location": location,
-            "teams": rosters
+            "title": self.title,
+            "id": self.id,
+            "roster": self.roster,
+            "event": self.event,
+            "match": self.match
         }
 
-    def get_title(self) -> str:
-        return self.soup.select_one(".event-header .wf-title").get_text(strip=True)
-
-    def get_description(self) -> str:
-        return self.soup.select_one(".event-header .event-desc-subtitle").get_text(strip=True)
-
-    def get_section(self) -> str:
-        return self.soup.select_one(".wf-subnav a.wf-subnav-item.mod-active .wf-subnav-item-title").get_text(strip=True)
-
-    def get_date(self) -> str:
-        for e in self.soup.select(".event-desc-items .event-desc-item"):
-            if e.select_one(".event-desc-item-label").get_text(strip=True) == "Dates":
-                return e.select_one(".event-desc-item-value").get_text(strip=True)
-    
-    def get_prize(self) -> str:
-        for e in self.soup.select(".event-desc-items .event-desc-item"):
-            if e.select_one(".event-desc-item-label").get_text(strip=True) == "Prize pool":
-                return e.select_one(".event-desc-item-value").get_text(strip=True)
-
-    def get_location(self) -> str:
-        for e in self.soup.select(".event-desc-items .event-desc-item"):
-            if e.select_one(".event-desc-item-label").get_text(strip=True) == "Location":
-                return e.select_one(".event-desc-item-value").get_text(strip=True)
-
-    def get_rosters(self) -> list:
+    def _get_roster(self, _soup: bs4.BeautifulSoup):
         ret: list = []
-
-        for e in self.soup.select(".event-teams-container .wf-card.event-team"):
+        for e in _soup.select(".event-teams-container .wf-card.event-team"):
             team_data = {}
             team_data["title"] = e.select_one(".event-team-name").get_text(strip=True)
             team_data["players"] = []
@@ -363,3 +393,35 @@ class Event():
             ret.append(team_data)
         return ret
 
+
+    def _get_series_id(self):
+        url = f"https://www.vlr.gg/event/matches/{self.event_id}/{self.id}/?series_id=all"
+        res = requests.get(url)
+        res.raise_for_status()
+        soup = bs4.BeautifulSoup(res.text, "html.parser")
+
+        series: list = []
+        
+        for e in soup.select_one(".btn.mod-filter.js-dropdown").select(".wf-dropdown.mod-all a"):
+            link = "https://www.vlr.gg/" + e.attrs["href"]
+            name = e.get_text(strip=True)
+
+            q = urllib.parse.parse_qs(urllib.parse.urlparse(link).query)
+            id = q["series_id"][0]
+
+            series.append({"id": id, "name": name})
+        return series
+
+    def _get_match_id(self, series_id: str = "all"):
+        url = f"https://www.vlr.gg/event/matches/{self.event_id}/{self.id}/?series_id={series_id}"
+        res = requests.get(url)
+        res.raise_for_status()
+        soup = bs4.BeautifulSoup(res.text, "html.parser")
+
+        match: list = []
+        
+        for cards in soup.select(".wf-card"):
+            for e in cards.select("a.wf-module-item.match-item"):
+                match.append(e.attrs["href"].split("/")[1])
+
+        return match

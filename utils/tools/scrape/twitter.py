@@ -28,7 +28,7 @@ class Tweet():
         self.url = WikiString.remove_url_params(url)
         
         article_html: str
-        photo_html: str
+        photo_html: str = None
         try:
             tweet_article = driver.find_element(by=By.XPATH, value="//article[@data-testid='tweet']")
 
@@ -37,7 +37,10 @@ class Tweet():
             self.id = tweet_article.find_element(by=By.XPATH, value="//div[@data-testid='User-Name']/div[2]").text
 
             article_html = tweet_article.find_element(by=By.XPATH, value="//div[@data-testid='tweetText']").get_attribute('innerHTML')
-            photo_html = tweet_article.find_element(by=By.XPATH, value="//div[@data-testid='tweetPhoto']").get_attribute('innerHTML')
+            try:
+                photo_html = tweet_article.find_element(by=By.XPATH, value="//div[@data-testid='tweetPhoto']").get_attribute('innerHTML')
+            except SeleniumExceptions.NoSuchElementException:
+                pass
 
         except SeleniumExceptions.NoSuchElementException:
             raise Exception(Lang.value("common.error_message.webdriver_notfound"))
@@ -52,10 +55,11 @@ class Tweet():
                 self.text += element.attrs["alt"]
 
         # image
-        self.image = []
-        soup: bs4.BeautifulSoup = bs4.BeautifulSoup(photo_html, "html.parser")
-        for element in soup.select("img"):
-            self.image.append(element.attrs["src"])
+        if photo_html!=None:
+            self.image = []
+            soup: bs4.BeautifulSoup = bs4.BeautifulSoup(photo_html, "html.parser")
+            for element in soup.select("img"):
+                self.image.append(element.attrs["src"])
 
         # date
         date = tweet_article.find_element(by=By.TAG_NAME, value="time").get_attribute("datetime")

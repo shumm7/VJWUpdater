@@ -11,9 +11,12 @@ from utils.cogs.cache import Cache
 from utils.cogs.update import Update
 from utils.cogs.template import Template
 #from utils.cogs.wikitext import Wikitext
-#from utils.cogs.list import List
+from utils.cogs.data import Data
 from utils.cogs.esports import Esports
+from utils.cogs.audio import Audio
 from utils.cogs.misc import Misc
+
+from utils.tools.json import Lua
 
 class Core():
     page: ft.Page
@@ -24,9 +27,10 @@ class Core():
     update: Update
     template: Template
     #wikitext: Wikitext
-    #list: List
     esports: Esports
+    audio: Audio
     misc: Misc
+    data: Data
 
     def __init__(self) -> None:
         ft.app(target=self.set_window)
@@ -43,8 +47,9 @@ class Core():
         self.update = Update(self.wiki, self.gui, self.page)
         self.template = Template(self.wiki, self.gui, self.page)
         #self.wikitext = Wikitext(self.wiki, self.page)
-        #self.list = List(self.wiki, self.page)
-        self.esports = Esports(self.wiki, self.gui, self.page)      
+        self.data = Data(self.wiki, self.gui, self.page)
+        self.esports = Esports(self.wiki, self.gui, self.page)     
+        self.audio = Audio(self.wiki, self.gui, self.page)      
         self.misc = Misc(self.wiki, self.gui, self.page)
     
 
@@ -80,6 +85,7 @@ class Core():
                     ft.Tab(
                         text=Lang.value("tabs.list"),
                         icon=ft.icons.LIST_ALT,
+                        content=self.data.main()
                     ),
                     ft.Tab(
                         text=Lang.value("tabs.template"),
@@ -90,6 +96,11 @@ class Core():
                         text=Lang.value("tabs.esports"),
                         icon=ft.icons.MOUSE,
                         content=self.esports.main()
+                    ),
+                    ft.Tab(
+                        text=Lang.value("tabs.audio"),
+                        icon=ft.icons.MIC,
+                        content=self.audio.main()
                     ),
                     ft.Tab(
                         text=Lang.value("tabs.misc"),

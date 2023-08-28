@@ -16,7 +16,7 @@ from webdriver_manager.firefox import GeckoDriverManager
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
 #driver = webdriver.Firefox(service=GeckoService(GeckoDriverManager().install()))
 
-driver.get("https://twitter.com/human_akiba/status/1679828704959275013")
+driver.get("url here")
 
 WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, "article")))
 WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located)

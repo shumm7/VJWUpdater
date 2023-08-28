@@ -1,4 +1,4 @@
-import requests
+import requests, re, dateutil.parser
 from utils.tools.json import JSON
 
 class API:
@@ -355,3 +355,82 @@ class API:
             return value
         except KeyError:
             return []
+
+    def get_act_list() -> list:
+            seasons: dict = JSON.read("api/seasons.json")
+            out: dict = {}
+            out_list: list = []
+
+            for season in seasons:
+                if season["parentUuid"]!=None:
+                    parent = season["parentUuid"]
+                    episode: int
+                    act: int
+
+                    for ep_season in seasons:
+                        if ep_season["uuid"]==parent:
+                            episode = int(re.findall('[0-9]+', ep_season["displayName"]["en-US"])[0])
+                            break
+
+                    act = int(re.findall('[0-9]+', season["displayName"]["en-US"])[0])
+                    uuid = season["uuid"]
+                    key = int(str(episode)+str(act))
+
+                    out[key] = uuid
+
+            sorted_dict: dict = dict(sorted(out.items()))
+            for item in sorted_dict.values():
+                out_list.append(item)
+            return out_list
+
+    def remove_list_from_uuid(_list: list, uuid: str):
+        return [i for i in _list if i["uuid"]!=uuid]
+    
+    def get_eventpass_list() -> list:
+        contracts = JSON.read("api/contracts.json")
+        events = sorted(JSON.read("api/events.json"), key=lambda x: dateutil.parser.parse(x["startTime"]))
+        ret = []
+
+        ret.append("a3dd5293-4b3d-46de-a6d7-4493f0530d9b") #プレイしてエージェントをアンロック
+        ret.append("0df5adb9-4dcb-6899-1306-3e9860661dd3") #クローズドベータ報酬
+
+        for event in events:
+            for contract in contracts:
+                if contract["content"]["relationType"] == "Event" and contract["content"]["relationUuid"]==event["uuid"]:
+                    ret.append(contract["uuid"])
+
+        return ret
+    
+    def get_bundle_name(uuid: str) -> str:
+        if uuid=="f7bf90a6-4e39-6c04-c12a-b79c8842359c":
+            return "チームエース (スキンセット)|チームエース"
+        elif uuid=="b7d754d4-44aa-4663-afc3-84a5cccc3c9d":
+            return "オニ (EP6)"
+        elif uuid=="f7dcf7e1-485e-0524-ec82-0d97b2c8b40b":
+            return "リーヴァー (EP5)"
+        elif uuid=="790f52c4-4ed8-9869-fa8b-bf92fc24b441":
+            return "イオン (EP5)"
+        elif uuid=="338cabdb-473f-1f37-fa35-47a3d994517f":
+            return "メイジパンク (EP3)"
+        elif uuid=="61215a36-435b-9c3e-73e0-25906a3ffe06":
+            return "メイジパンク (EP6)"
+        elif uuid=="05e8add9-404d-5d37-8973-9f93f8880e2d":
+            return "グリッチポップ (EP2)"
+        elif uuid=="ed453815-44aa-4c4d-f3aa-77b4bcf048d7":
+            return "RGX 11z Pro (EP4)"
+        elif uuid=="bf987f36-4a33-45e4-3c49-1ab9a2502607":
+            return "Champions 2021 (スキンセット)|Champions 2021"
+        elif uuid=="f99e5b38-48c7-1146-acfa-9baaf773b844":
+            return "Champions 2022 (スキンセット)|Champions 2022"
+        elif uuid=="90ee89df-40cf-03d3-420f-3d9a1b81d85b":
+            return "Champions 2023 (スキンセット)|Champions 2023"
+        elif uuid=="2654d506-4d05-e7e9-c996-63ac6fdaf767":
+            return "VCT LOCK//IN (スキンセット)|VCT LOCK//IN"
+        elif uuid=="a6fa35c6-4205-d5bc-dd65-3b92aeaac412":
+            return "ラン・イット・バック 2.0"
+        elif uuid=="bcdd8956-4588-f586-fda8-fd991c593449":
+            return "ラン・イット・バック (EP5)"
+        elif uuid=="9d801e67-4b33-4d99-04b8-aab317819a4e":
+            return "ラン・イット・バック (EP6)"
+        else:
+            return API.bundle_by_uuid(uuid)["displayName"]["ja-JP"]

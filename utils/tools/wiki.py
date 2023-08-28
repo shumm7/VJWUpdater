@@ -236,7 +236,7 @@ class Wiki():
 
 class WikiString:
     def wiki_format(string: str) -> str:
-        return re.sub('\s+', ' ', string.replace("/", "").replace("?", "").replace(":", "").replace("#", "").strip())
+        return re.sub('\s+', ' ', string.replace("/", "").replace("?", "").replace(":", "").replace("#", "").replace("\r\n", " ").replace("\n", " ").strip())
     
     def wiki_template(template: str, args: dict, div: str = "") -> str:
         ret: str = "{{" + template + div

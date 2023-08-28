@@ -10,6 +10,7 @@
         "list": "リスト",
         "template": "テンプレート",
         "esports": "競技シーン",
+        "audio": "オーディオ",
         "misc": "その他"
     },
     "common": {
@@ -238,12 +239,29 @@
                 }
             },
             "weapon": {
-                "title": "武器",
-                "description": "武器・スキンのデータを更新します。"
+                "title": "武器スキン",
+                "begin": "武器スキンの更新確認を開始しています",
+                "failed": "武器スキンの更新確認に失敗しました。",
+                "success": "武器スキンの更新確認に成功しました。",
+                "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
+                "video": " (ビデオ)",
+                "description": "武器・スキンのデータを更新します。",
+                "toggle_video_on": "ビデオをダウンロードする (アップロードは行いません)",
+                "toggle_video_off": "ビデオをダウンロードしない (アップロードは行いません)",
+                "warn_notfound": "画像が見つかりませんでした。",
+                "wiki_description": "[[Category:{weapon}のスキン]][[Category:{bundle}]]",
+                "wiki_description_video": "[[Category:{bundle}]][[Category:スキンのプレビュー]]",
+                "progress": "{count} / {max} ({weapon}: {weapon_count} / {weapon_max})"
             },
             "levelborder": {
                 "title": "レベルボーダー",
                 "description": "レベルボーダーのデータを更新します。"
+            }
+        },
+        "data": {
+            "spray": {
+                "title": "スプレー",
+                "description": "スプレーのデータリストを取得します。"
             }
         },
         "template": {
@@ -282,10 +300,42 @@
                 "title": "Match List",
                 "description": "Match listテンプレートを生成します。",
                 "match_id": "マッチID",
+                "event_id": "イベントID",
                 "button": "テンプレートを生成",
+                "check": "イベントIDから生成する",
+                "log": "ログ",
+                "stage": "ステージを選択",
+                "progress": "{count} / {max}",
                 "tooltip": "VLR.gg の試合結果のリンクかマッチIDを入力",
                 "success": "Match list テンプレートの生成に成功しました。",
-                "failed": "Match list テンプレートの生成に失敗しました。"
+                "failed": "Match list テンプレートの生成に失敗しました。",
+                "match_success": "マッチID: {match} の生成が完了しました。",
+                "log_success": "ログの生成に成功しました。",
+                "log_failed": "ログの生成に成功しました。"
+            }
+        },
+        "audio": {
+            "wemconv": {
+                "title": "WEM変換",
+                "description": "WEMファイルを任意のファイルに変換します。",
+                "folder": "ファイルを選択",
+                "wav": "WAVに変換",
+                "progress": "{current} / {max}",
+                "error": "変換に失敗しました。"
+            },
+            "rename": {
+                "title": "リネーム",
+                "description": "ゲームリソースから取得したファイルを適切なファイル名に変更します。",
+                "pick_json": "JSONファイルを選択",
+                "pick_resources": "オーディオファイルを選択",
+                "action": "リネームを実行",
+                "json": "JSONファイル",
+                "resources": "オーディオファイル",
+                "open": "フォルダを指定する",
+                "toggle_child_on": "ファイル読み込み: 下層のディレクトリまで読み込む",
+                "toggle_child_off": "ファイル読み込み: 下層のディレクトリを読み込まない",
+                "progress": "{current} / {max}",
+                "error": "変換に失敗しました。"
             }
         },
         "misc": {

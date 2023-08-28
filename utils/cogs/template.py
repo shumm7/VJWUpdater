@@ -72,7 +72,6 @@ class Template():
 
 class Cite():
     page: ft.Page
-    loading: Gui.ProgressRing
     state: ft.Text
     switch_ref: ft.Switch
     field_url: ft.TextField
@@ -94,6 +93,7 @@ class Cite():
         self.field_template_quote = ft.TextField(label=Lang.value("contents.template.cite.item.quote"))
         self.field_template_section = ft.TextField(label=Lang.value("contents.template.cite.item.section"))
 
+        self.loading = self.gui.ProgressRing(self.page)
         self.field_output = ft.TextField(label=Lang.value("common.output"))
         self.copy_button = self.gui.CopyButton(self.page, self.field_output.value)
 
@@ -151,7 +151,8 @@ class Cite():
                             on_click=on_clicked_url
                         ),
                         padding=5
-                    )
+                    ),
+                    self.loading.main()
                 ]),
                 ft.Divider(),
 
@@ -275,6 +276,29 @@ class Cite():
         
         elif "valorantesports.com" in address:
             self.ValorantEsportsDialog(self.page, _url, self.field_template_url, self.field_template_title, self.field_template_author, self.field_template_website, self.field_template_date)
+        
+        elif "zetadivision.com" in address:
+            html = requests.get(_url)
+            html.raise_for_status()
+            soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html.text, "html.parser")
+
+            title = soup.select_one("h1").get_text(strip=True)
+            website = "ZETA DIVISION"
+            date =  datetime.datetime.strftime(datetime.datetime.strptime(soup.select_one(".singleNews__date").get_text(strip=True), "%d %b %Y"), "%Y-%m-%d")
+
+            title = re.sub("\n+", " ", title)
+
+            self.field_template_url.value = _url
+            self.field_template_title.value = title
+            self.field_template_author.value = ""
+            self.field_template_website.value = website
+            self.field_template_date.value = date
+
+            self.gui.safe_update(self.field_template_url)
+            self.gui.safe_update(self.field_template_title)
+            self.gui.safe_update(self.field_template_author)
+            self.gui.safe_update(self.field_template_website)
+            self.gui.safe_update(self.field_template_date)
 
         elif "twitter.com" in address:
             v = Tweet(_url)
@@ -335,7 +359,10 @@ class Cite():
                 v = ValorantEsports(url, self.wait)
                 field_template_url.value = v.url
                 field_template_title.value = v.title
-                field_template_author.value = v.author
+                if v.author!=None:
+                    field_template_author.value = v.author
+                else:
+                    field_template_author.value = ""
                 field_template_website.value = "VALORANT Esports"
                 field_template_date.value = datetime.date.strftime(v.date(self.locale, self.format), "%Y-%m-%d")
 

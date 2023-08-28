@@ -1,10 +1,15 @@
 import flet as ft
 import datetime
+import os
+import zipfile
+import subprocess
+import shutil
 
 from utils.tools.localize import Lang
 from utils.tools.wiki import Wiki
 from utils.tools.gui import Gui
 from utils.tools.endpoint import Endpoint
+from utils.tools.fetch import Fetch
 from utils.tools.json import JSON
 from utils.tools.api import API
 
@@ -28,7 +33,7 @@ class Misc():
         def on_clicked(e):
             i = e.control.selected_index
             contents = [
-                self.store.main()
+                self.store.main(),
             ]
 
             try:
@@ -390,3 +395,4 @@ class Store():
                     ft.Divider()
                 ])
             )
+

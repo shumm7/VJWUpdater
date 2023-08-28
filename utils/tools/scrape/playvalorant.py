@@ -88,8 +88,8 @@ class ValorantEsports():
     subtitle: str
     date_raw: str
     thumbnail: str
-    author: str
-    author_role: str
+    author: str = None
+    author_role: str = None
 
     def __init__(self, url: str, wait: float = 0.5) -> None:
         driver = Webdriver.get()
@@ -111,8 +111,11 @@ class ValorantEsports():
             #default_locale = locale.getlocale(locale.LC_TIME)
             self.date_raw = driver.find_element(by=By.CSS_SELECTOR, value='div._0436d div:first-child').text.strip()
 
-            self.author = driver.find_element(by=By.CSS_SELECTOR, value='div._67595 div._350d9').text
-            self.author_role = driver.find_element(by=By.CSS_SELECTOR, value='div._67595 div:not(._350d9)').text
+            try:
+                self.author = driver.find_element(by=By.CSS_SELECTOR, value='div._67595 div._350d9').text
+                self.author_role = driver.find_element(by=By.CSS_SELECTOR, value='div._67595 div:not(._350d9)').text
+            except SeleniumExceptions.NoSuchElementException:
+                pass
         except SeleniumExceptions.NoSuchElementException:
             raise Exception(Lang.value("common.error_message.webdriver_notfound"))
     
