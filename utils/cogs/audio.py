@@ -91,8 +91,9 @@ class WEMConv():
         self.page = page
         self.gui = gui
         self.audio = Conversion()
-        self.lists = ft.ListView(auto_scroll=True, height=300)
+        self.lists = ft.ListView(auto_scroll=True, height=200)
         self.state = ft.Text("")
+        self.selected = ft.Text("")
         self.ring = self.gui.ProgressRing(self.page)
         self.file_picker = ft.FilePicker()
         self.page.overlay.append(self.file_picker)
@@ -114,18 +115,17 @@ class WEMConv():
                     self.ring.main(),
                     self.state
                 ]),
+                self.selected,
                 self.lists,
 
-                ft.Row(
-                    [
-                        ft.FilledTonalButton(
-                            text=Lang.value("contents.audio.wemconv.wav"),
-                            icon=ft.icons.AUDIO_FILE,
-                            on_click=lambda e: self.convert_wav()
-                        ),
-                        self.gui.directory_button("output/audio/wav")
-                    ]
-                )
+                ft.Row([
+                    ft.FilledTonalButton(
+                        text=Lang.value("contents.audio.wemconv.wav"),
+                        icon=ft.icons.AUDIO_FILE,
+                        on_click=lambda e: self.convert_wav()
+                    ),
+                    self.gui.directory_button("output/audio/wav")
+                ])
                 
             ],
             scroll=True
@@ -141,7 +141,9 @@ class WEMConv():
                     self.files.append(f)
             except:
                 pass
-
+            
+            self.selected.value = Lang.value("contents.audio.wemconv.selected").format(count=len(self.files))
+            self.gui.safe_update(self.selected)
             self.gui.safe_update(self.lists)
 
         self.file_picker.on_result = pick_files_result
@@ -160,36 +162,41 @@ class WEMConv():
             self.gui.safe_update(self.state)
             try:
                 self.audio.wem_to_wav(f.path, "output/audio/wav")
+                self.append_list(f, ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=Lang.value("common.success")))
             except Exception as e:
-                self.lists.controls.append(
-                    ft.Card(
-                        ft.Container(
-                            ft.Column([
-                                ft.Row(
-                                    controls=[
-                                        ft.Row([
-                                            ft.IconButton(icon=ft.icons.WARNING, icon_color="yellow", tooltip=str(e)),
-                                            ft.Text(f.name, weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM)
-                                        ]),
-                                    ],
-                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                                ),
-                                ft.Row([
-                                    ft.Text(f.path, style=ft.TextThemeStyle.BODY_SMALL)
-                                ])
-                            ]),
-                            padding=3
-                        )
-                    )
-                )
+                self.append_list(f, ft.IconButton(icon=ft.icons.WARNING, icon_color="yellow", tooltip=str(e)))
             finally:
                 i += 1
         
-        self.lists.controls.clear()
-        self.gui.safe_update(self.lists)
         self.state.value = ""
         self.gui.safe_update(self.state)
         self.ring.state(False)
+        self.selected.value = ""
+        self.gui.safe_update(self.selected)
+        self.gui.popup_notice(Lang.value("contents.audio.wemconv.finish"))
+    
+    def append_list(self, f, icon: ft.IconButton):
+        self.lists.controls.append(
+            ft.Card(
+                ft.Container(
+                    ft.Column([
+                        ft.Row(
+                            controls=[
+                                ft.Row([
+                                    icon,
+                                    ft.Text(f.name, style=ft.TextThemeStyle.BODY_MEDIUM)
+                                ])
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                        ),
+                        ft.Row([
+                            ft.Text(f.path, style=ft.TextThemeStyle.BODY_SMALL)
+                        ])
+                    ]),
+                    padding=3
+                )
+            )
+        )
 
 
 class Rename():
@@ -236,44 +243,36 @@ class Rename():
                 ft.Divider(),
                 self.switch_child,
 
-                ft.Row(
-                    [
-                        self.dir1_show,
-                        ft.IconButton(
-                            icon = ft.icons.FOLDER,
-                            on_click=lambda e: self.picked_resources()
-                        )
-                    ]
-                ),
-                ft.Row(
-                    [
-                        self.dir2_show,
-                        ft.IconButton(
-                            icon = ft.icons.FOLDER,
-                            on_click=lambda e: self.picked_json()
-                        )
-                    ]
-                ),
+                ft.Row([
+                    self.dir1_show,
+                    ft.IconButton(
+                        icon = ft.icons.FOLDER,
+                        on_click=lambda e: self.picked_resources()
+                    )
+                ]),
+                ft.Row([
+                    self.dir2_show,
+                    ft.IconButton(
+                        icon = ft.icons.FOLDER,
+                        on_click=lambda e: self.picked_json()
+                    )
+                ]),
 
-                ft.Row(
-                    [
-                        self.ring.main(),
-                        self.state
-                    ]
-                ),
+                ft.Row([
+                    self.ring.main(),
+                    self.state
+                ]),
 
                 ft.Divider(),
                 self.lists,
 
-                ft.Row(
-                    [
-                        ft.FilledTonalButton(
-                            text=Lang.value("contents.audio.rename.action"),
-                            icon=ft.icons.AUDIO_FILE,
-                            on_click=lambda e: self.rename_audio()
-                        ),
-                    ]
-                )
+                ft.Row([
+                    ft.FilledTonalButton(
+                        text=Lang.value("contents.audio.rename.action"),
+                        icon=ft.icons.AUDIO_FILE,
+                        on_click=lambda e: self.rename_audio()
+                    ),
+                ])
                 
             ],
             scroll=True

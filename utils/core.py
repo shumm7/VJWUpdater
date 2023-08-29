@@ -1,9 +1,12 @@
 import os
+import requests
 import flet as ft
 from utils.tools.config import Config
 from utils.tools.localize import Lang
 from utils.tools.wiki import Wiki
 from utils.tools.gui import Gui
+from utils.tools.json import JSON
+from utils.tools.assets import Assets
 
 from utils.cogs.settings import Settings
 from utils.cogs.home import Home
@@ -51,6 +54,8 @@ class Core():
         self.esports = Esports(self.wiki, self.gui, self.page)     
         self.audio = Audio(self.wiki, self.gui, self.page)      
         self.misc = Misc(self.wiki, self.gui, self.page)
+        
+        self.version_check()
     
 
     def set_window(self, page: ft.Page):
@@ -82,11 +87,11 @@ class Core():
                         icon=ft.icons.UPDATE,
                         content=self.update.main()
                     ),
-                    ft.Tab(
-                        text=Lang.value("tabs.list"),
-                        icon=ft.icons.LIST_ALT,
-                        content=self.data.main()
-                    ),
+                    #ft.Tab(
+                    #    text=Lang.value("tabs.list"),
+                    #    icon=ft.icons.LIST_ALT,
+                    #    content=self.data.main()
+                    #),
                     ft.Tab(
                         text=Lang.value("tabs.template"),
                         icon=ft.icons.CONTACT_PAGE,
@@ -112,6 +117,22 @@ class Core():
             )
         )
     
+    def version_check(self):
+        url = "https://raw.githubusercontent.com/shumm7/VJWUpdater/main/assets/package.json"
 
-    
+        try:
+            current_version = JSON.read(Assets.path("assets/package.json")).get("version", "")
+            ret = requests.get(url).json()
+            latest_version = ret.get("version")
+
+            if latest_version==None:
+                self.gui.popup_warn(Lang.value("common.version_check.failed"), Lang.value("common.version_check.failed").format(version=str(current_version), latest=str(latest_version)))
+            else:
+                if latest_version==current_version:
+                    self.gui.popup_success(Lang.value("common.version_check.success"), Lang.value("common.version_check.latest").format(version=str(current_version), latest=str(latest_version)))
+                else:
+                    self.gui.popup_warn(Lang.value("common.version_check.success"), Lang.value("common.version_check.outdated").format(version=str(current_version), latest=str(latest_version)))
+
+        except Exception as e:
+            self.gui.popup_error(Lang.value("common.version_check.failed"), str(e))
     

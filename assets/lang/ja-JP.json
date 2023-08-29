@@ -8,7 +8,7 @@
         "cache": "データ",
         "update": "更新確認",
         "list": "リスト",
-        "template": "テンプレート",
+        "template": "Wiki",
         "esports": "競技シーン",
         "audio": "オーディオ",
         "misc": "その他"
@@ -72,6 +72,13 @@
             "webdriver_notfound": "指定されたページから要素が見つかりませんでした。",
             "webdriver_timeout": "タイムアウトしました。",
             "error": "不明なエラーが発生しました。"
+        },
+        "version_check": {
+            "latest": "あなたのVJW Updaterは最新です：{version}",
+            "outdated": "あなたのVJW Updaterは最新ではありません：{version} （最新は{latest}）",
+            "success": "バージョンチェックに成功しました。",
+            "failed": "バージョンチェックに失敗しました。",
+            "display": "あなたのバージョン：{version} / 取得したバージョン：{latest}"
         }
     },
     "settings": {
@@ -118,7 +125,6 @@
             "chrome": "Chrome",
             "firefox": "Firefox",
             "edge": "Edge",
-            "brave": "Brave",
             "button": "テスト",
             "tooltip": "ブラウザが起動します",
             "success": "テストに成功しました。"
@@ -268,6 +274,21 @@
             "common": {
                 "button": "テンプレートを生成"
             },
+            "upload": {
+                "title": "アップロード",
+                "description": "Wikiにファイルをアップロードします。",
+                "folder": "ファイルを選択",
+                "action": "アップロード",
+                "finish": "アップロードが完了しました。",
+                "failed": "アップロードに失敗しました。",
+                "progress": "{current} / {max}",
+                "selected": "{count} 件のファイルを選択中",
+                "add_category": "カテゴリを追加",
+                "remove_category": "カテゴリを削除",
+                "file_description": "説明",
+                "file_license": "ライセンス",
+                "file_category": "カテゴリ"
+            },
             "cite": {
                 "title": "Cite",
                 "description": "Cite（引用文テンプレート）を生成します。",
@@ -321,6 +342,8 @@
                 "folder": "ファイルを選択",
                 "wav": "WAVに変換",
                 "progress": "{current} / {max}",
+                "selected": "{count} 件のファイルを選択中",
+                "finish": "変換が終了しました。",
                 "error": "変換に失敗しました。"
             },
             "rename": {

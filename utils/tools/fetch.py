@@ -6,14 +6,12 @@ import urllib.parse
 from utils.tools.config import Config
 
 from selenium import webdriver
-from webdriver_manager.core.utils import ChromeType
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.firefox.service import Service as GeckoService
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.edge.service import Service as EdgeService
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
-from selenium.webdriver.chrome.service import Service as BraveService
 
 class Fetch:
     def download(url, dst_path):
@@ -32,8 +30,6 @@ class Webdriver():
                 return webdriver.Firefox(service=GeckoService(GeckoDriverManager().install()))
             elif browser == "edge":
                 return webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()))
-            elif browser == "brave":
-                return webdriver.Chrome(service=BraveService(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()))
         except:
             return None
     

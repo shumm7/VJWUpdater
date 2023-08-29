@@ -54,7 +54,7 @@ class Home():
                         ),
                         ft.Row(
                             controls=[
-                                ft.Container(ft.Text(JSON.read(Assets.path("assets/package.json")).get("version", []), style=ft.TextThemeStyle.BODY_SMALL), margin=10)
+                                ft.Container(ft.Text(JSON.read(Assets.path("assets/package.json")).get("version", ""), style=ft.TextThemeStyle.BODY_SMALL), margin=10)
                             ],
                             alignment="center"
                         ),

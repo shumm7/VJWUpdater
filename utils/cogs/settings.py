@@ -197,7 +197,6 @@ class Settings():
                 ft.Radio(value="chrome", label=Lang.value("settings.webdriver.chrome")),
                 ft.Radio(value="firefox", label=Lang.value("settings.webdriver.firefox")),
                 ft.Radio(value="edge", label=Lang.value("settings.webdriver.edge")),
-                ft.Radio(value="brave", label=Lang.value("settings.webdriver.brave"))
             ]),
             value=Config.read_key("webdriver")
         )

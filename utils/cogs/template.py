@@ -21,14 +21,16 @@ class Template():
         self.gui = gui
 
         self.cite = Cite(wiki, gui, page)
+        self.upload = Upload(wiki, gui, page)
     
     def main(self):
-        self.content = ft.Container(self.cite.main(), expand=True)
+        self.content = ft.Container(self.upload.main(), expand=True)
 
         def on_clicked(e):
             i = e.control.selected_index
 
             contents = [
+                self.upload.main(),
                 self.cite.main()
             ]
 
@@ -46,6 +48,11 @@ class Template():
                     min_width=100,
                     min_extended_width=400,
                     destinations=[
+                        ft.NavigationRailDestination(
+                            icon=ft.icons.FILE_UPLOAD_OUTLINED,
+                            selected_icon=ft.icons.FILE_UPLOAD,
+                            label=Lang.value("contents.template.upload.title"),
+                        ),
                         ft.NavigationRailDestination(
                             icon=ft.icons.IMPORT_CONTACTS,
                             selected_icon=ft.icons.IMPORT_CONTACTS,
@@ -69,6 +76,187 @@ class Template():
             ]
         )
 
+class Upload():
+    files: list = []
+    categories: list = []
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+        self.lists = ft.ListView(auto_scroll=True, height=200)
+        self.state = ft.Text("")
+        self.selected = ft.Text("")
+        self.ring = self.gui.ProgressRing(self.page)
+
+        self.description = ft.TextField(min_lines=3, max_lines=3, value="", label=Lang.value("contents.template.upload.file_description"))
+        self.license = ft.TextField(min_lines=1, max_lines=1, value="{{License Riot Games}}", label=Lang.value("contents.template.upload.file_license"))
+        self.category = ft.TextField(min_lines=1, max_lines=1, value="", label=Lang.value("contents.template.upload.file_category"))
+        self.category_list = ft.Row()
+
+        self.file_picker = ft.FilePicker()
+        self.page.overlay.append(self.file_picker)
+    
+    def main(self):
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.template.upload.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.template.upload.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+                ft.Row([
+                    ft.ElevatedButton(
+                        text=Lang.value("contents.template.upload.folder"),
+                        icon=ft.icons.UPLOAD_FILE,
+                        on_click=lambda _: self.file_picked()
+                    ),
+                    self.ring.main(),
+                    self.state
+                ]),
+                self.selected,
+                ft.Container(padding=10),
+                self.description,
+                ft.Container(padding=10),
+                self.license,
+                ft.Container(padding=10),
+                ft.Row([
+                    self.category,
+                    ft.IconButton(
+                        icon=ft.icons.ADD,
+                        tooltip=Lang.value("contents.template.upload.add_category"),
+                        on_click=lambda e: self.add_category()
+                    ),
+                    ft.IconButton(
+                        icon=ft.icons.REMOVE,
+                        tooltip=Lang.value("contents.template.upload.remove_category"),
+                        on_click=lambda e: self.remove_category()
+                    ),
+                ]),
+                self.category_list,
+                ft.Container(padding=10),
+
+                ft.Divider(),
+                self.lists,
+                ft.FilledTonalButton(
+                    text=Lang.value("contents.template.upload.action"),
+                    icon=ft.icons.AUDIO_FILE,
+                    on_click=lambda e: self.upload()
+                ),
+
+            ],
+            spacing=0
+        )
+
+    def file_picked(self):
+        def pick_files_result(e: ft.FilePickerResultEvent):
+            self.lists.controls.clear()
+            self.files.clear()
+            
+            try:
+                for f in e.files:
+                    self.files.append(f)
+            except:
+                pass
+            
+            self.selected.value = Lang.value("contents.template.upload.selected").format(count=len(self.files))
+            self.gui.safe_update(self.selected)
+            self.gui.safe_update(self.lists)
+
+        self.file_picker.on_result = pick_files_result
+        self.file_picker.pick_files(
+            allow_multiple=True
+        )
+
+    def add_category(self):
+        category = self.category.value.strip()
+        self.categories.append(category)
+
+        def on_click_category(e: ft.ControlEvent):
+            self.category.value = e.control.text
+            self.gui.safe_update(self.category)
+
+        flag: bool = True
+        for c in self.category_list.controls:
+            if c.text == category:
+                flag = False
+                break
+        
+        if flag and len(category)>0:
+            self.category_list.controls.append(ft.OutlinedButton(text=category, on_click=on_click_category))
+        self.gui.safe_update(self.category_list)
+        self.category.value = ""
+        self.gui.safe_update(self.category)
+    
+    def remove_category(self):
+        category = self.category.value.strip()
+        while category in self.categories:
+            self.categories.remove(category)
+
+        i = 0
+        for c in self.category_list.controls:
+            if c.text == category:
+                self.category_list.controls.pop(i)
+            i+=1
+        self.gui.safe_update(self.category_list)
+
+        self.category.value = ""
+        self.gui.safe_update(self.category)
+
+    def upload(self):
+        self.ring.state(True)
+        try:
+            i: int = 1
+            self.wiki.login()
+            for f in self.files:
+                self.state.value = Lang.value("contents.template.upload.progress").format(current=i, max=len(self.files))
+                self.gui.safe_update(self.state)
+                try:
+                    self.wiki.upload(f.name, "== 概要: ==\n"+self.description.value+"\n"+self.make_category()+"\n= ライセンス ==\n"+self.license.value, f.path, "Via VJW Updater")
+                    self.append_list(f, ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=Lang.value("common.success")))
+                except Exception as e:
+                    self.append_list(f, ft.IconButton(icon=ft.icons.WARNING, icon_color="yellow", tooltip=str(e)))
+                finally:
+                    i += 1
+            self.wiki.logout()
+            
+            self.state.value = ""
+            self.gui.safe_update(self.state)
+            self.ring.state(False)
+            self.selected.value = ""
+            self.gui.safe_update(self.selected)
+            self.gui.popup_notice(Lang.value("contents.template.upload.finish"))
+        except Exception as e:
+            self.gui.popup_error(Lang.value("contents.template.upload.failed"), str(e))
+    
+    def make_category(self):
+        ret = ""
+        for c in self.categories:
+            ret += f"[[Category:{c}]]\n"
+        return ret
+
+    def append_list(self, f, icon: ft.IconButton ):
+        self.lists.controls.append(
+            ft.Card(
+                ft.Container(
+                    ft.Column([
+                        ft.Row(
+                            controls=[
+                                ft.Row([
+                                    icon,
+                                    ft.Text(f.name, style=ft.TextThemeStyle.BODY_MEDIUM)
+                                ])
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                        ),
+                        ft.Row([
+                            ft.Text(f.path, style=ft.TextThemeStyle.BODY_SMALL)
+                        ])
+                    ]),
+                    padding=3
+                )
+            )
+        )
 
 class Cite():
     page: ft.Page
