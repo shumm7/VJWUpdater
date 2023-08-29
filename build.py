@@ -8,6 +8,6 @@ version = package.get("version", "")
 name = package.get("name", "")
 copyright = package.get("copyright", "")
 
-cmd: str = f"flet pack main.py --name \"{name}\" --icon assets/icon.ico --add-data \"assets;assets\" --product-name \"{name}\" --product-version \"{version}\" --copyright \"{copyright}\" --file-version \"{version}\" --uac-admin"
+cmd: str = f"flet pack main.py --name \"{name}\" --icon assets/icon.ico --add-data \"assets;assets\" --product-name \"{name}\" --product-version \"{version}\" --copyright \"{copyright}\" --file-version \"{version}\""
 
 subprocess.run(cmd)
