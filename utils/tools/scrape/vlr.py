@@ -25,21 +25,27 @@ class Match():
         self.team = (teams[0], teams[1])
 
         # team shortname
-        teams_short = []
+        teams_short = ["", ""]
         sp = self.soup.find("div", {"class": "vm-stats-game", "data-game-id": "all"})
-        for tbl in sp.select(".mod-overview"):
-            short = tbl.select_one(".mod-player .ge-text-light").get_text(strip=True)
-            teams_short.append(short)
+        try:
+            for tbl in sp.select(".mod-overview"):
+                short = tbl.select_one(".mod-player .ge-text-light").get_text(strip=True)
+                teams_short.append(short)
+        except:
+            pass
         self.team_short = (teams_short[0], teams_short[1])
 
         # map count
         map_count = []
         for e in self.soup.select(".match-header-vs-score-winner, .match-header-vs-score-loser"):
             map_count.append(int(e.get_text(strip=True)))
-        self.map_count = (map_count[0], map_count[1])
+        if len(map_count)>0:
+            self.map_count = (map_count[0], map_count[1])
+        else:
+            self.map_count = (0, 0)
 
         # patch
-        patch: str
+        patch: str = ""
         for e in self.soup.select_one(".match-header-date").select("div"):
             if not "moment-tz-convert" in e.attrs.get("class", []):
                 patch = e.getText(strip=True).replace("Patch ", "")
@@ -52,7 +58,10 @@ class Match():
             if "moment-tz-convert" in e.attrs.get("class", []):
                 date = e.attrs["data-utc-ts"]
                 break
-        self.date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        if date!=None:
+            self.date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        else:
+            self.date = ""
 
         # event id
         event_id: str = self.soup.select_one("a.match-header-event").attrs["href"]
@@ -67,38 +76,41 @@ class Match():
         players: list = []
         div = self.soup.find("div", {"class":"vm-stats-game", "data-game-id":"all"})
 
-        for tbl in div.select("table.mod-overview > tbody"):
-            player_team = []
-            for tr in tbl.find_all("tr"):
-                player = {}
-                player["name"] = tr.select_one("td.mod-player > div div").get_text(strip=True)
-                
+        try:
+            for tbl in div.select("table.mod-overview > tbody"):
+                player_team = []
+                for tr in tbl.find_all("tr"):
+                    player = {}
+                    player["name"] = tr.select_one("td.mod-player > div div").get_text(strip=True)
+                    
 
-                i=1
-                for td in tr.select("td.mod-stat"):
-                    if i==1:
-                        player["rating"] = float(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                    elif i==2:
-                        player["acs"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                    elif i==3:
-                        player["kill"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                    elif i==4:
-                        player["death"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                    elif i==5:
-                        player["assist"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                    elif i==7:
-                        player["kast"] = int(td.select_one("span.mod-both").get_text(strip=True).replace('%', '') or -1)
-                    elif i==8:
-                        player["adr"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                    elif i==9:
-                        player["hs%"] = int(td.select_one("span.mod-both").get_text(strip=True).replace('%', '') or -1)
-                    elif i==10:
-                        player["fk"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                    elif i==11:
-                        player["fd"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                    i = i + 1
-                player_team.append(player)
-            players.append(player_team)
+                    i=1
+                    for td in tr.select("td.mod-stat"):
+                        if i==1:
+                            player["rating"] = float(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                        elif i==2:
+                            player["acs"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                        elif i==3:
+                            player["kill"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                        elif i==4:
+                            player["death"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                        elif i==5:
+                            player["assist"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                        elif i==7:
+                            player["kast"] = int(td.select_one("span.mod-both").get_text(strip=True).replace('%', '') or -1)
+                        elif i==8:
+                            player["adr"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                        elif i==9:
+                            player["hs%"] = int(td.select_one("span.mod-both").get_text(strip=True).replace('%', '') or -1)
+                        elif i==10:
+                            player["fk"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                        elif i==11:
+                            player["fd"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                        i = i + 1
+                    player_team.append(player)
+                players.append(player_team)
+        except:
+            pass
 
         self.player = players
 
@@ -167,9 +179,10 @@ class Match():
 
         # Player Sort
         player_sort_list = [[], []]
-        for i in range(2):
-            for p in self.player[i]:
-                player_sort_list[i].append(p["name"])
+        if len(self.player)>0:
+            for i in range(2):
+                for p in self.player[i]:
+                    player_sort_list[i].append(p["name"])
         
         # Get Map name
         map_dict={}
@@ -262,39 +275,42 @@ class Match():
                 for tbl in div.select("table.mod-overview > tbody"):
                     player_team = {}
                     for tr in tbl.find_all("tr"):
-                        player = {}
-                        player["name"] = tr.select_one("td.mod-player > div div").get_text(strip=True)
-                        player["agent"] = tr.select_one("td.mod-agents img")["title"]
-                        
+                        try:
+                            player = {}
+                            player["name"] = tr.select_one("td.mod-player > div div").get_text(strip=True)
+                            player["agent"] = tr.select_one("td.mod-agents img")["title"]
+                            
 
-                        i=1
-                        for td in tr.select("td.mod-stat"):
-                            if i==1:
-                                player["rating"] = float(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==2:
-                                player["acs"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==3:
-                                player["kill"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==4:
-                                player["death"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==5:
-                                player["assist"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==4:
-                                player["death"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==5:
-                                player["assist"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==7:
-                                player["kast"] = int(td.select_one("span.mod-both").get_text(strip=True).replace('%', '') or -1)
-                            elif i==8:
-                                player["adr"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==9:
-                                player["hs%"] = int(td.select_one("span.mod-both").get_text(strip=True).replace('%', '') or -1)
-                            elif i==10:
-                                player["fk"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            elif i==11:
-                                player["fd"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
-                            i = i + 1
-                        player_team[player["name"]] = player
+                            i=1
+                            for td in tr.select("td.mod-stat"):
+                                if i==1:
+                                    player["rating"] = float(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==2:
+                                    player["acs"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==3:
+                                    player["kill"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==4:
+                                    player["death"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==5:
+                                    player["assist"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==4:
+                                    player["death"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==5:
+                                    player["assist"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==7:
+                                    player["kast"] = int(td.select_one("span.mod-both").get_text(strip=True).replace('%', '') or -1)
+                                elif i==8:
+                                    player["adr"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==9:
+                                    player["hs%"] = int(td.select_one("span.mod-both").get_text(strip=True).replace('%', '') or -1)
+                                elif i==10:
+                                    player["fk"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                elif i==11:
+                                    player["fd"] = int(td.select_one("span.mod-both").get_text(strip=True) or -1)
+                                i = i + 1
+                            player_team[player["name"]] = player
+                        except:
+                            pass
                     
                     player_team_sorted: list = []
                     for p in player_sort_list[j]:

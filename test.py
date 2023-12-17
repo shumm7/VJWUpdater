@@ -1,40 +1,21 @@
-import time
-import bs4
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from utils.tools.json import JSON
+from utils.tools.fetch import Fetch
+from utils.tools.api import API
 
-# Chrome
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
+agents = JSON.read("api/agents.json")
+str = ""
 
+for agent in agents:
+    for ability in agent["abilities"]:
+        agent_name = agent["displayName"]["en-US"]
+        name: str = ability["displayName"]["en-US"]
+        name_jp: str = ability["displayName"]["ja-JP"]
+        description = ability["description"]["ja-JP"]
+        keys = {"Ability1": "Q",  "Ability2": "E", "Grenade": "C", "Ultimate": "X"}
+        key = keys.get(ability["slot"], "")
 
-from selenium.webdriver.firefox.service import Service as GeckoService
-from webdriver_manager.firefox import GeckoDriverManager
+        str += f"	[\"{name.lower()}\"] = " + "{ " + f"name=\"{name_jp}\", [\"name-latin\"]=\"{name}\", link=\"{name_jp}\", icon=\"{name} Icon.png\", description=\"{description}\", key=\"{key}\", agent=\"{agent_name}\"" + " },\n"  
+        str += f"	[\"{name_jp.lower()}\"] = \"{name.lower()}\",\n"
 
-driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-#driver = webdriver.Firefox(service=GeckoService(GeckoDriverManager().install()))
-
-driver.get("url here")
-
-WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, "article")))
-WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located)
-
-tweet_article = driver.find_element(by=By.XPATH, value="//article[@data-testid='tweet']")
-
-print(tweet_article.find_element(by=By.XPATH, value="//div[@data-testid='User-Name']/div[1]").text)
-print(tweet_article.find_element(by=By.XPATH, value="//div[@data-testid='User-Name']/div[2]").text)
-
-article_html = tweet_article.find_element(by=By.XPATH, value="//div[@data-testid='tweetText']").get_attribute('innerHTML')
-soup: bs4.BeautifulSoup = bs4.BeautifulSoup(article_html, "html.parser")
-
-text = ""
-for element in soup.select("span,img"):
-    if element.name == "span":
-        text += element.text
-    elif element.name == "img":
-        text += element.attrs["alt"]
-
-print(text)
-driver.quit()
+with open("abilities.txt", "w") as f:
+    f.write(str)

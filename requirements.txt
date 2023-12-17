@@ -1,0 +1,11 @@
+flet>=0.10.3
+requests==2.31.0
+bs4==0.0.1
+python-dotenv~=0.19.2
+urllib3~=1.26.8
+python-dateutil==2.8.2
+pyperclip==1.8.2
+selenium>=4.14.0
+aiohttp==3.8.6
+multidict~=6.0.2
+webdriver_manager==4.0.1

@@ -39,6 +39,7 @@ class API:
         else:
             raise Exception("Failed to fetching: api/bundles.json")
 
+        """
         # api.valtracker.gg
         url = 'https://api.valtracker.gg/v1/bundles'
 
@@ -47,13 +48,15 @@ class API:
             JSON.save("api/bundles2.json", resp2.json()['data'])
         else:
             raise Exception("Failed to fetching: api/bundles2.json")
-        
+        """
+            
         # misc
         bundles = {}
         for bundle in resp.json()['data']:
             uuid = bundle["uuid"]
             bundles[uuid] = bundle
 
+        """
         for bundle2 in resp2.json()['data']:
             if bundle2["uuid"] in bundles:
                 bundle = bundles[bundle2.get('uuid')]
@@ -83,14 +86,14 @@ class API:
                 for spray in bundle2['sprays']:
                     items.append({
                         'uuid': spray['uuid'],
-                        'type': 'Spray',
+                        'type': 'sprays',
                         'price': spray.get('price'),
                         **default,
                     })
                 
                 bundle['items'] = items
                 bundle['price'] = bundle2['price']
-
+        """
         JSON.save("api/dict/bundles.json", bundles)
                     
     def competitivetiers():
@@ -110,6 +113,15 @@ class API:
             JSON.save("api/contracts.json", resp.json()['data'])
         else:
             raise Exception("Failed to fetching: api/contracts.json")
+    
+    def contenttiers():
+        url = 'https://valorant-api.com/v1/contenttiers?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            JSON.save("api/contenttiers.json", resp.json()['data'])
+        else:
+            raise Exception("Failed to fetching: api/contenttiers.json")
     
     def currencies():
         url = 'https://valorant-api.com/v1/currencies?language=all'
@@ -200,6 +212,15 @@ class API:
             JSON.save("api/sprays.json", resp.json()['data'])
         else:
             raise Exception("Failed to fetching: api/sprays.json")
+
+    def themes():
+        url = 'https://valorant-api.com/v1/themes?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            JSON.save("api/themes.json", resp.json()['data'])
+        else:
+            raise Exception("Failed to fetching: api/themes.json")
     
     def weapons():
         url = 'https://valorant-api.com/v1/weapons?language=all'
@@ -245,12 +266,13 @@ class API:
         return None
     
     def spray_by_uuid(uuid: str) -> dict:
-        sprays = JSON.read("api/sprays.json")
+        url = f'https://valorant-api.com/v1/sprays/{uuid}?language=all'
 
-        for spray in sprays:
-            if spray["uuid"]==uuid:
-                return spray
-        return None
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
 
     def playercard_by_uuid(uuid: str) -> dict:
         playercards = JSON.read("api/playercards.json")
@@ -267,6 +289,33 @@ class API:
             if playertitle["uuid"]==uuid:
                 return playertitle
         return None
+
+    def contenttier_by_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/contenttiers/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+    
+    def contract_by_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/contracts/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+    
+    def theme_by_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/themes/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
     
     def skin_by_skinlevel_uuid(uuid: str) -> dict:
         url = f'https://valorant-api.com/v1/weapons/skinlevels/{uuid}?language=all'
@@ -276,6 +325,44 @@ class API:
             return resp.json()['data']
         else:
             return None
+    
+    def skin_by_skinlevel_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/weapons/skinlevels/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+        
+    def skin_parent_by_skinlevel_uuid(uuid: str) -> dict:
+        weapons = JSON.read("api/weapons.json")
+        ret: dict = None
+        try:
+            for weapon in weapons:
+                for skin in weapon["skins"]:
+                    for level in skin["levels"]:
+                        if level["uuid"]==uuid:
+                            ret = skin
+                            raise KeyError
+        except KeyError:
+            pass
+        finally:
+            return ret
+    
+    def weapon_parent_by_skin_uuid(uuid: str) -> dict:
+        weapons = JSON.read("api/weapons.json")
+        ret: dict = None
+        try:
+            for weapon in weapons:
+                for skin in weapon["skins"]:
+                    if skin["uuid"]==uuid:
+                        ret = weapon
+                        raise KeyError
+        except KeyError:
+            pass
+        finally:
+            return ret
     
     def weapon_by_uuid(uuid: str) -> dict:
         url = f'https://valorant-api.com/v1/weapons/{uuid}?language=all'
@@ -297,6 +384,15 @@ class API:
     
     def skin_by_skinchroma_uuid(uuid: str) -> dict:
         url = f'https://valorant-api.com/v1/weapons/skinchromas/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+    
+    def currency_by_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/currencies/{uuid}?language=all'
 
         resp = requests.get(url)
         if resp.status_code == 200:
@@ -355,6 +451,24 @@ class API:
             return value
         except KeyError:
             return []
+    
+    def theme_from_bundle_uuid(uuid: str) -> str:
+        url = f'https://valorant-api.com/v1/themes/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            theme = resp.json()['data']
+            bundles = JSON.read("api/bundles.json")
+
+            for bundle in bundles:
+                if bundle["displayName"]["en-US"] == theme["displayName"]["en-US"]:
+                    return bundle["uuid"]
+            
+            return None
+
+        else:
+            return None
+
 
     def get_act_list() -> list:
             seasons: dict = JSON.read("api/seasons.json")
@@ -383,6 +497,15 @@ class API:
                 out_list.append(item)
             return out_list
 
+    def get_episode_list() -> list:
+            seasons: dict = JSON.read("api/seasons.json")
+            out_list: list = []
+
+            for season in seasons:
+                if season["parentUuid"]==None and season["uuid"]!="0df5adb9-4dcb-6899-1306-3e9860661dd3":
+                    out_list.append(season)
+            return out_list
+
     def remove_list_from_uuid(_list: list, uuid: str):
         return [i for i in _list if i["uuid"]!=uuid]
     
@@ -392,7 +515,7 @@ class API:
         ret = []
 
         ret.append("a3dd5293-4b3d-46de-a6d7-4493f0530d9b") #プレイしてエージェントをアンロック
-        ret.append("0df5adb9-4dcb-6899-1306-3e9860661dd3") #クローズドベータ報酬
+        ret.append("4ef7ddda-4b73-c349-ee84-e8a9794613b5") #クローズドベータ報酬
 
         for event in events:
             for contract in contracts:
@@ -432,5 +555,214 @@ class API:
             return "ラン・イット・バック (EP5)"
         elif uuid=="9d801e67-4b33-4d99-04b8-aab317819a4e":
             return "ラン・イット・バック (EP6)"
+        elif uuid=="3d580e29-435b-8e65-22f4-3c8b8974f5fd":
+            return "ガイアズ・ヴェンジェンス (EP7)"
         else:
             return API.bundle_by_uuid(uuid)["displayName"]["ja-JP"]
+    
+    def get_prime_gaming_reward() -> list:
+        return [
+            {
+                "type": "buddies",
+                "uuid": "1e909ee9-4af5-5d50-aa27-2bb596187986",
+                "date": "2020年9月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "839c6e7d-4821-157b-fd38-71b3debc874f",
+                "date": "2020年10月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "180a93cb-4ba4-db87-b357-b9b104373a74",
+                "date": "2020年11月"
+            },
+            {
+                "type": "currencies",
+                "uuid": "e59aa87c-4cbf-517a-5983-6e81511be9b7",
+                "date": "2020年12月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "4bfcc79c-4352-aa06-53de-259530012e45",
+                "date": "2021年1月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "42cb4b6a-45e3-8a83-2f52-0d90c7ca306d",
+                "date": "2021年2月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "278e4d19-4026-02ac-263e-bca2b69df8fb",
+                "date": "2021年3月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "7da0141a-4f39-33c9-8e0b-a8b44bc59a36",
+                "date": "2021年4月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "2d9be381-4686-b392-310e-8bb2a6707f7e",
+                "date": "2021年5月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "46841a97-48b1-3432-5b28-5ca47df923a9",
+                "date": "2021年6月"
+            },
+            {
+                "type": "playercards",
+                "uuid": "8453f8ef-4c0b-46e2-8768-3e9e45c67a2c",
+                "date": "2021年6月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "48601754-442d-98cb-2109-3fb2075500ec",
+                "date": "2021年7月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "8e992d1d-4e3e-627f-7e84-cc98963f304c",
+                "date": "2021年8月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "40cc1645-43f4-4db3-ebb2-fdb46f8e9bf3",
+                "date": "2021年9月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "f677065c-449d-dd91-78ef-6fa7d95ded8d",
+                "date": "2021年10月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "30abc170-4cbb-bd6e-8a19-b1bbe91fa99a",
+                "date": "2021年11月"
+            },
+            {
+                "type": "playercards",
+                "uuid": "1ec054a0-4184-8802-57fb-0ab81599befd",
+                "date": "2021年11月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "e8a8c717-4845-3c69-9c16-d8a78153c51d",
+                "date": "2021年12月"
+            },
+            {
+                "type": "skins",
+                "uuid": "e917273f-42d1-3a8d-7c9e-54afd6e5e68d",
+                "date": "2022年1月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "90b6b7eb-4960-5a26-7d49-7cbab0d7cfb2",
+                "date": "2022年2月"
+            },
+            {
+                "type": "playercards",
+                "uuid": "584b90b0-4bdc-e9e4-a13f-9eaff115b624",
+                "date": "2022年3月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "85637987-4961-177a-28f0-f3acf8facb6a",
+                "date": "2022年4月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "d22eff46-419a-9ebc-c60a-4892359fa2d1",
+                "date": "2022年5月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "7516ebb5-405d-e0ff-0fd9-67b8135b7821",
+                "date": "2022年6月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "5a328cd4-4cb5-4e64-60c2-6487281390ff",
+                "date": "2022年7月"
+            },
+            {
+                "type": "playercards",
+                "uuid": "a26b6480-4bc4-51df-fe97-4680f30786d5",
+                "date": "2022年8月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "3085ca2f-4e7a-25a5-909d-33940b0148e2",
+                "date": "2022年9月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "5f5db91e-4fd5-e0f9-3944-63a93397d3ee",
+                "date": "2022年10月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "166a3fb6-492c-9437-417d-b8852128f73c",
+                "date": "2022年11月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "759b4a69-4742-cdf9-4211-4c867cdcabd7",
+                "date": "2022年12月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "f3c383f4-41c7-d0fb-190b-ed8b974e043e",
+                "date": "2023年2月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "2020356c-4061-7736-053d-90963f8e3caf",
+                "date": "2023年3月"
+            },
+            {
+                "type": "playercards",
+                "uuid": "33910cd9-4ac5-a0e1-8e79-3ca6916af3ef",
+                "date": "2023年4月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "a9126263-439c-7be6-d668-52a6c0c0a36f",
+                "date": "2023年5月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "b3066549-4b2a-f7d4-d655-3784181db732",
+                "date": "2023年6月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "770cbcca-40bd-0c68-0aae-b2a98747c8f0",
+                "date": "2023年7月"
+            },
+            {
+                "type": "buddies",
+                "uuid": "f99da793-4f3c-c551-caa8-9b995bea1aa1",
+                "date": "2023年8月"
+            },
+            {
+                "type": "playercards",
+                "uuid": "ba7626fd-4343-cc54-3c0e-a888483a25f5",
+                "date": "2023年9月"
+            },
+            {
+                "type": "playercards",
+                "uuid": "34ecc788-4034-71d2-a0ac-c398b8ecb2ae",
+                "date": "2023年10月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "94ccd7e7-4ddc-553e-d9e2-5a8afc1d3a5b",
+                "date": "2023年11月"
+            }
+        ]
+
+
+

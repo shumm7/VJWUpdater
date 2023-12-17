@@ -75,7 +75,7 @@ class Audio():
                             content = self.content,
                         )],
                         horizontal_alignment=ft.MainAxisAlignment.START,
-                        scroll=True
+                        #scroll=True
                     ),
                     expand=True
                 )
@@ -209,11 +209,13 @@ class Rename():
         self.page = page
         self.gui = gui
 
-        self.lists = ft.ListView(auto_scroll=True, height=300)
+        self.result = {}
+        self.lists = self.gui.UpdateResult(self.page)
         self.dir1_show: ft.TextField = ft.TextField(label=Lang.value("contents.audio.rename.resources"), value="E:\Document\VJWUpdater\output\\audio\wav")
         self.dir2_show: ft.TextField = ft.TextField(label=Lang.value("contents.audio.rename.json"), value="E:\Document\FModel\Output\Exports\ShooterGame\Content\WwiseAudio\Localized\ja-JP\Events")
         self.state = ft.Text()
         self.ring = self.gui.ProgressRing(self.page)
+        self.button = ft.FilledTonalButton(text=Lang.value("contents.audio.rename.action"), icon=ft.icons.AUDIO_FILE, on_click=lambda e: self.rename_audio())
 
         self.file_picker_json = ft.FilePicker()
         self.page.overlay.append(self.file_picker_json)
@@ -259,23 +261,19 @@ class Rename():
                 ]),
 
                 ft.Row([
+                    self.button,
                     self.ring.main(),
                     self.state
                 ]),
-
-                ft.Divider(),
-                self.lists,
-
-                ft.Row([
-                    ft.FilledTonalButton(
-                        text=Lang.value("contents.audio.rename.action"),
-                        icon=ft.icons.AUDIO_FILE,
-                        on_click=lambda e: self.rename_audio()
-                    ),
-                ])
+                ft.Container(
+                    content=self.lists.main(),
+                    padding=10,
+                    height=200
+                )
+                
                 
             ],
-            scroll=True
+            #scroll=True
         )
 
     def picked_resources(self):
@@ -301,6 +299,15 @@ class Rename():
     def rename_audio(self):
         j: int = 1
         self.ring.state(True)
+        self.lists.clear()
+        self.result = {"success": [], "skipped": [], "warn": []}
+
+        self.button.disabled = True
+        self.dir1_show.disabled = True
+        self.dir2_show.disabled = True
+        self.gui.safe_update(self.button)
+        self.gui.safe_update(self.dir1_show)
+        self.gui.safe_update(self.dir2_show)
 
         try:
             self.files.clear()
@@ -344,13 +351,26 @@ class Rename():
                         idx: str = ""
                         if i>1:
                             idx = "_" + str(i)
-
-                        if os.path.isfile(wem):
-                            os.rename(wem, os.path.join(self.dir1_show.value, title+idx+".wem"))
-                        elif os.path.isfile(wav):
-                            os.rename(wav, os.path.join(self.dir1_show.value, title+idx+".wav"))
-                        elif os.path.isfile(ogg):
-                            os.rename(ogg, os.path.join(self.dir1_show.value, title+idx+".ogg"))
+                        
+                        if os.path.exists(os.path.join(self.dir1_show.value, title+idx+".wem")) or os.path.exists(os.path.join(self.dir1_show.value, title+idx+".wav")) or os.path.exists(os.path.join(self.dir1_show.value, title+idx+".ogg")):
+                            self.lists.append(f"{id} [{i}]", f"{title}{idx}", "skipped", Lang.value("common.skipped"))
+                            self.result["skipped"].append({"id": id, "index": i, "name": title})
+                        else:
+                            if os.path.isfile(wem):
+                                os.rename(wem, os.path.join(self.dir1_show.value, title+idx+".wem"))
+                                self.lists.append(f"{id} [{i}]", f"{title}{idx}", "success", Lang.value("common.success"))
+                                self.result["success"].append({"id": id, "index": i, "name": title})
+                            elif os.path.isfile(wav):
+                                os.rename(wav, os.path.join(self.dir1_show.value, title+idx+".wav"))
+                                self.lists.append(f"{id} [{i}]", f"{title}{idx}", "success", Lang.value("common.success"))
+                                self.result["success"].append({"id": id, "index": i, "name": title})
+                            elif os.path.isfile(ogg):
+                                os.rename(ogg, os.path.join(self.dir1_show.value, title+idx+".ogg"))
+                                self.lists.append(f"{id} [{i}]", f"{title}{idx}", "success", Lang.value("common.success"))
+                                self.result["success"].append({"id": id, "index": i, "name": title})
+                            else:
+                                self.lists.append(f"{id} [{i}]", f"{title}{idx}", "warn", Lang.value("common.warn"), Lang.value("contents.audio.rename.not_found"))
+                                self.result["warn"].append({"id": id, "index": i, "name": title})
 
                     except Exception as e:
                         pass
@@ -361,6 +381,14 @@ class Rename():
                 self.gui.popup_error(Lang.value("contents.audio.rename.error"), str(e))
             finally:
                 j += 1
+
+        JSON.save(os.path.join(self.dir1_show.value, "result.json"), self.result)
         self.state.value = ""
         self.gui.safe_update(self.state)
         self.ring.state(False)
+        self.button.disabled = False
+        self.dir1_show.disabled = False
+        self.dir2_show.disabled = False
+        self.gui.safe_update(self.button)
+        self.gui.safe_update(self.dir1_show)
+        self.gui.safe_update(self.dir2_show)

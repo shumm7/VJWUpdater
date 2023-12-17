@@ -45,14 +45,17 @@
         "version": "バージョン",
         "competitivetier": "ランク",
         "contract": "バトルパス",
+        "contenttier": "コンテンツティア",
         "gear": "シールド",
         "levelborder": "レベルボーダー",
         "map": "マップ",
         "season": "シーズン",
+        "theme": "テーマ",
         "weapon": "武器",
         "currency": "通貨",
         "event": "イベント",
         "gamemode": "ゲームモード",
+        "offer": "オファー",
         "price": {
             "valorant_point": "{price} VP",
             "kingdom_credit": "{price} KC",
@@ -179,6 +182,7 @@
                 "title": "プレイヤーカード",
                 "description": "プレイヤーカードのデータを更新します。",
                 "begin": "プレイヤーカードの更新確認を開始しています",
+                "db": "データベースを作成しています",
                 "failed": "プレイヤーカードの更新確認に失敗しました。",
                 "success": "プレイヤーカードの更新確認に成功しました。",
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
@@ -193,16 +197,21 @@
                 "title": "スプレー",
                 "description": "スプレーのデータを更新します。",
                 "begin": "スプレーの更新確認を開始しています",
+                "db": "データベースを作成しています",
                 "failed": "スプレーの更新確認に失敗しました。",
                 "success": "スプレーの更新確認に成功しました。",
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
                 "warn_notfound": "画像が見つかりませんでした。",
-                "wiki_description": "[[Category:スプレー]]"
+                "wiki_description": {
+                   "image": "[[Category:スプレー]]",
+                   "icon": "[[Category:スプレーのアイコン]]"
+                }
             },
             "buddy": {
                 "title": "ガンバディー",
                 "description": "ガンバディーのデータを更新します。",
                 "begin": "ガンバディーの更新確認を開始しています",
+                "db": "データベースを作成しています",
                 "failed": "ガンバディーの更新確認に失敗しました。",
                 "success": "ガンバディーの更新確認に成功しました。",
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
@@ -247,6 +256,7 @@
             "weapon": {
                 "title": "武器スキン",
                 "begin": "武器スキンの更新確認を開始しています",
+                "db": "データベースを作成しています ({num} / {max})",
                 "failed": "武器スキンの更新確認に失敗しました。",
                 "success": "武器スキンの更新確認に成功しました。",
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
@@ -261,7 +271,16 @@
             },
             "levelborder": {
                 "title": "レベルボーダー",
-                "description": "レベルボーダーのデータを更新します。"
+                "description": "レベルボーダーのデータを更新します。",
+                "begin": "レベルボーダーの更新確認を開始しています",
+                "failed": "レベルボーダーの更新確認に失敗しました。",
+                "success": "レベルボーダーの更新確認に成功しました。",
+                "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
+                "warn_notfound": "画像が見つかりませんでした。",
+                "wiki_description": {
+                    "levelNumberAppearance": "[[Category:レベルボーダー]]",
+                    "smallPlayerCardAppearance": "[[Category:レベルボーダー]]"
+                }
             }
         },
         "data": {
@@ -289,6 +308,49 @@
                 "file_license": "ライセンス",
                 "file_category": "カテゴリ"
             },
+            "remove": {
+                "title": "削除",
+                "description": "Wikiのページを削除します。",
+                "action": "ページ削除",
+                "finish": "ページの削除が完了しました。",
+                "success": "ページの削除が成功しました。",
+                "failed": "ページの削除に失敗しました。",
+                "not_found": "ページの削除に失敗しました。",
+                "progress": "{current} / {max}",
+                "selected": "{count} 件のファイルを選択中",
+                "reason": "理由",
+                "page": "ページ (改行で区切り)"
+            },
+            "contentmodel": {
+                "title": "コンテンツモデル",
+                "description": "コンテンツモデルを変更します。",
+                "action": "変更",
+                "finish": "コンテンツモデルの変更が完了しました。",
+                "failed": "コンテンツモデルの変更に失敗しました。",
+                "not_found": "コンテンツモデルの変更に失敗しました。",
+                "progress": "{current} / {max}",
+                "page": "ページ (改行で区切り)",
+                "contentmodel": "コンテンツモデル",
+                "model": {
+                    "wikitext": "wikitext",
+                    "GeoJSON": "GeoJSON",
+                    "GeoJson": "GeoJson",
+                    "sanitized-css": "サニタイズCSS",
+                    "javascript": "JavaScript",
+                    "json": "JSON",
+                    "css": "CSS",
+                    "text": "プレーンテキスト"
+                }
+            },
+            "edit": {
+                "title": "編集",
+                "description": "Wikiの特定のページを編集します。",
+                "edit": "編集",
+                "upload": "編集を保存",
+                "cancel": "編集をキャンセル",
+                "page_title": "編集中: {name}",
+                "new_page_title": "作成中: {name}"
+            },
             "cite": {
                 "title": "Cite",
                 "description": "Cite（引用文テンプレート）を生成します。",
@@ -314,6 +376,18 @@
                     "locale": "ロケール",
                     "dateformat": "日付フォーマット"
                 }
+            },
+            "contracts": {
+                "title": "Contract",
+                "description": "Contract（バトルパステンプレート）を生成します。",
+                "progress": "{count} / {max} ({name})",
+                "toggle_update_off": "Wikiにアップロード: しない",
+                "toggle_update_on": "Wikiにアップロード: する",
+                "action": "テンプレートを生成",
+                "error": "テンプレートの生成に失敗しました。",
+                "error_with_info": "テンプレートの生成に失敗しました：{info}",
+                "template": "テンプレート",
+                "page": "ページ"
             }
         },
         "esports": {
@@ -358,7 +432,8 @@
                 "toggle_child_on": "ファイル読み込み: 下層のディレクトリまで読み込む",
                 "toggle_child_off": "ファイル読み込み: 下層のディレクトリを読み込まない",
                 "progress": "{current} / {max}",
-                "error": "変換に失敗しました。"
+                "error": "変換に失敗しました。",
+                "not_found": "変換元のオーディオファイルが見つかりませんでした。"
             }
         },
         "misc": {

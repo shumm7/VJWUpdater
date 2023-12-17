@@ -178,12 +178,11 @@ class Gui():
         lists: ft.ListView
         data: list
 
-        def __init__(self, page: ft.Page, output_dir: str) -> None:
+        def __init__(self, page: ft.Page) -> None:
             self.page = page
             self.gui = Gui(page)
-            self.lists = ft.ListView(expand=1, spacing=10, padding=20, auto_scroll=True)
+            self.lists = ft.ListView(expand=1, spacing=10, padding=20, auto_scroll=True, height=300)
             self.data = []
-            self.output = output_dir
 
             def update_button(e):
                 self.clear()
@@ -203,90 +202,32 @@ class Gui():
             self.check_skipped = ft.Checkbox(value=False, label=Lang.value("common.skipped"), on_change=update_button)
             self.check_warn = ft.Checkbox(value=True, label=Lang.value("common.warn"), on_change=update_button)
             self.check_error = ft.Checkbox(value=True, label=Lang.value("common.error"), on_change=update_button)
-            self.export_button = self.gui.ExportButton(self.page, self._export_log)
-            
-            """
-            self.check = ft.Row([
-                self.check_success, self.check_skipped, self.check_warn, self.check_error, ft.Container(self.export_button.main(), margin=2)
-            ])
-            """
-            self.directory_button = self.gui.directory_button(self.output)
-            self.export_button = self.gui.ExportButton(self.page, self._export_log)
-            self.check = ft.Row([self.directory_button, self.export_button.main()])
         
         def main(self) -> ft.ListView:
-            return ft.Column([
-                self.check,
-                self.lists
-            ])
+            return ft.Column([self.lists])
 
         def clear(self):
             self.lists.controls.clear()
             self.gui.safe_update(self.lists)
         
-        def append(self, value: dict, title: str, filename: str, image_src: str, mode: str, reason: str, description: str = None):
-            self.data.append({
-                "value": value,
-                "title": title,
-                "filename": filename,
-                "image_src": image_src,
-                "mode": mode,
-                "reason": reason,
-                "description": description
-            })
+        def append(self, title: str, subtitle: str, mode: str, reason: str, description: str = None):
 
             if self.check_success.value and mode=="success":
-                self._add_list(value, title, filename, image_src, mode, reason, description)
+                self._add_list(title, subtitle, mode, reason, description)
             if self.check_skipped.value and mode=="skipped":
-                self._add_list(value, title, filename, image_src, mode, reason, description)
+                self._add_list(title, subtitle, mode, reason, description)
             if self.check_warn.value and mode=="warn":
-                self._add_list(value, title, filename, image_src, mode, reason, description)
+                self._add_list(title, subtitle, mode, reason, description)
             if self.check_error.value and mode=="error":
-                self._add_list(value, title, filename, image_src, mode, reason, description)
+                self._add_list(title, subtitle, mode, reason, description)
         
         def _append_list(self, ctrl: ft.Control):
             self.lists.controls.append(ctrl)
             self.gui.safe_update(self.lists)
         
-        def _add_list(self, value: dict, title: str, filename: str, image_src: str, mode: str, reason: str, description: str = None):
-            def close_dialog(e):
-                dialog.open = False
-                try:
-                    self.page.update()
-                except Exception as e:
-                    pass
-
-            def open_dialog(e):
-                self.page.dialog = dialog
-                dialog.open = True
-                try:
-                    self.page.update()
-                except Exception as e:
-                    pass
-            
-            dialog = ft.AlertDialog(
-                modal=True,
-                title=ft.Text(filename),
-                content=ft.Column([
-                    ft.Text(title, weight=ft.FontWeight.BOLD, style=ft.TextThemeStyle.BODY_MEDIUM),
-                    ft.Row([
-                        ft.Text(value.get("uuid", ""), style=ft.TextThemeStyle.BODY_SMALL),
-                        self.gui.CopyButton(self.page, value.get("uuid", "")).main()
-                    ]),
-                    ft.Image(src=image_src, width=200, height=200, fit=ft.ImageFit.CONTAIN)
-                ]),
-                actions=[
-                    ft.TextButton(Lang.value("common.ok"), on_click=close_dialog),
-                ],
-                actions_alignment=ft.MainAxisAlignment.END,
-            )
+        def _add_list(self, title: str, subtitle: str, mode: str, reason: str = "", description: str = None):
             iconbutton: ft.IconButton
-            imagebutton = ft.IconButton(
-                icon=ft.icons.PREVIEW,
-                tooltip=Lang.value("common.preview"),
-                on_click = open_dialog
-            ) 
-            buttons = ft.Row([imagebutton])
+            buttons = ft.Row([])
             if type(description)==str:
                 buttons.controls.insert(
                     0,
@@ -321,36 +262,13 @@ class Gui():
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                             ),
                             ft.Row([
-                                ft.Text(filename, style=ft.TextThemeStyle.BODY_SMALL)
+                                ft.Text(subtitle, style=ft.TextThemeStyle.BODY_SMALL)
                             ])
                         ]),
                         padding=3
                     )
                 )
             )    
-        
-        def _export_log(self):
-            time: str = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S.%f")
-            output: dict = {
-                "success": [],
-                "skipped": [],
-                "warn": [],
-                "error": []
-            }
-
-            for d in self.data:
-                output[d["mode"]].append({
-                    "uuid": d["value"].get("uuid", ""),
-                    "name": d["title"],
-                    "filename": d["filename"],
-                    "image": d["image_src"],
-                    "reason": d["reason"],
-                    "description": d["description"],
-                })
-            
-            self.export_button.set(f"output/logs/log_{time}.json")
-            os.makedirs("output/logs", exist_ok=True)
-            JSON.save(f"output/logs/log_{time}.json", output)
 
     class Result():
         page: ft.Page

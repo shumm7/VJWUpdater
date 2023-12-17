@@ -5,6 +5,7 @@ from utils.tools.localize import Lang
 from utils.tools.api import API
 from utils.tools.wiki import Wiki
 from utils.tools.gui import Gui
+from utils.tools.endpoint import Endpoint
 
 class Cache():
     page: ft.Page
@@ -285,6 +286,23 @@ class FetchAll():
             self.datacells[2].update()
         except Exception:
             pass
+    
+    def offer(self):
+        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.offer")))
+        endpoint = Endpoint()
+        offers = endpoint.fetch_offers()
+        ret = {}
+
+        for offer in offers["Offers"]:
+            ret[offer["OfferID"]] = {
+                "uuid": offer["OfferID"],
+                "purchase": offer["IsDirectPurchase"],
+                "date": offer["StartDate"],
+                "vp": offer["Cost"].get("85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741", 0),
+                "reward": offer["Rewards"]
+            }
+
+        JSON.save("api/offer.json", ret)
         
     def fetch(self):
         os.makedirs(f"api/dict", exist_ok=True)
@@ -305,6 +323,9 @@ class FetchAll():
         
         self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.contract")))
         API.contracts()
+
+        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.contenttier")))
+        API.contenttiers()
         
         self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.currency")))
         API.currencies()
@@ -333,11 +354,17 @@ class FetchAll():
         self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.season")))
         API.seasons()
         
-        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.spray")))
-        API.sprays()
+        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.theme")))
+        API.themes()
+
+        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.map")))
+        API.maps()
         
         self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.weapon")))
         API.weapons()
+
+        #endpoint
+        self.offer()
         
         self.update_state(Lang.value("contents.cache.fetch.finish"))
         b = JSON.read("api/version.json").get('version', "None")

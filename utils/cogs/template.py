@@ -4,7 +4,8 @@ import urllib.parse
 from utils.tools.localize import Lang
 from utils.tools.json import JSON
 from utils.tools.fetch import Fetch
-from utils.tools.wiki import Wiki, WikiString
+from utils.tools.api import API
+from utils.tools.wiki import Wiki, WikiString, FileName
 from utils.tools.gui import Gui
 from utils.tools.scrape.playvalorant import PlayValorant, ValorantEsports
 from utils.tools.scrape.twitter import Tweet
@@ -22,16 +23,24 @@ class Template():
 
         self.cite = Cite(wiki, gui, page)
         self.upload = Upload(wiki, gui, page)
+        self.edit = Edit(wiki, gui, page)
+        self.contentmodel = Contentmodel(wiki, gui, page)
+        self.remove = Remove(wiki, gui, page)
+        self.contracts = Contracts(wiki, gui, page)
     
     def main(self):
-        self.content = ft.Container(self.upload.main(), expand=True)
+        self.content = ft.Container(self.edit.main(), expand=True)
 
         def on_clicked(e):
             i = e.control.selected_index
 
             contents = [
+                self.edit.main(),
                 self.upload.main(),
-                self.cite.main()
+                self.remove.main(),
+                self.contentmodel.main(),
+                self.cite.main(),
+                self.contracts.main()
             ]
 
             try:
@@ -49,14 +58,34 @@ class Template():
                     min_extended_width=400,
                     destinations=[
                         ft.NavigationRailDestination(
+                            icon=ft.icons.EDIT_OUTLINED,
+                            selected_icon=ft.icons.EDIT,
+                            label=Lang.value("contents.template.edit.title"),
+                        ),
+                        ft.NavigationRailDestination(
                             icon=ft.icons.FILE_UPLOAD_OUTLINED,
                             selected_icon=ft.icons.FILE_UPLOAD,
                             label=Lang.value("contents.template.upload.title"),
                         ),
                         ft.NavigationRailDestination(
+                            icon=ft.icons.DELETE_OUTLINED,
+                            selected_icon=ft.icons.DELETE,
+                            label=Lang.value("contents.template.remove.title"),
+                        ),
+                        ft.NavigationRailDestination(
+                            icon=ft.icons.DELETE_OUTLINED,
+                            selected_icon=ft.icons.DELETE,
+                            label=Lang.value("contents.template.contentmodel.title"),
+                        ),
+                        ft.NavigationRailDestination(
                             icon=ft.icons.IMPORT_CONTACTS,
                             selected_icon=ft.icons.IMPORT_CONTACTS,
                             label=Lang.value("contents.template.cite.title"),
+                        ),
+                        ft.NavigationRailDestination(
+                            icon=ft.icons.CONTACT_PAGE_OUTLINED,
+                            selected_icon=ft.icons.CONTACT_PAGE,
+                            label=Lang.value("contents.template.contracts.title"),
                         ),
                     ],
                     on_change=on_clicked
@@ -212,7 +241,7 @@ class Upload():
                 self.state.value = Lang.value("contents.template.upload.progress").format(current=i, max=len(self.files))
                 self.gui.safe_update(self.state)
                 try:
-                    self.wiki.upload(f.name, "== 概要: ==\n"+self.description.value+"\n"+self.make_category()+"\n= ライセンス ==\n"+self.license.value, f.path, "Via VJW Updater")
+                    self.wiki.upload(f.name, "== 概要: ==\n"+self.description.value+"\n"+self.make_category()+"\n== ライセンス ==\n"+self.license.value, f.path, "Via VJW Updater")
                     self.append_list(f, ft.IconButton(icon=ft.icons.CHECK, icon_color="green", tooltip=Lang.value("common.success")))
                 except Exception as e:
                     self.append_list(f, ft.IconButton(icon=ft.icons.WARNING, icon_color="yellow", tooltip=str(e)))
@@ -257,6 +286,258 @@ class Upload():
                 )
             )
         )
+
+class Edit():
+    editting: str = ""
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+
+        self.field_title = ft.TextField(min_lines=1, max_lines=1, max_length=255)
+        self.field_text = ft.TextField(min_lines=8, max_lines=8, disabled=True)
+        self.state = ft.Text()
+        self.progress = self.gui.ProgressRing(self.page)
+
+        self.button_upload = ft.FilledTonalButton(
+            text=Lang.value("contents.template.edit.upload"),
+            icon=ft.icons.UPLOAD_FILE,
+            disabled=True
+        )
+        self.button_cancel = ft.FilledTonalButton(
+            text=Lang.value("contents.template.edit.cancel"),
+            icon = ft.icons.CLEAR,
+            disabled=True,
+            on_click=lambda e:self.cancel_edit()
+        )
+        self.button_edit = ft.FilledTonalButton(
+            text=Lang.value("contents.template.edit.edit"),
+            icon=ft.icons.EDIT,
+            disabled=False,
+            on_click=lambda e: self.fetch_wikitext()
+        )
+    
+    def main(self):
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.template.edit.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.template.edit.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+                ft.Row([
+                    self.field_title,
+                    self.button_edit,
+                    self.progress.main()
+                ]),
+                
+                ft.Divider(),
+                self.state,
+                self.field_text,
+                ft.Row([self.button_upload, self.button_cancel])
+            ],
+            spacing=0
+        )
+
+    def fetch_wikitext(self):
+        self.progress.state(True)
+
+        self.field_title.disabled = True
+        self.button_edit.disabled = True
+        self.gui.safe_update(self.field_title)
+        self.gui.safe_update(self.button_edit)
+
+        self.wiki.login()
+        if self.wiki.check_exist(self.field_title.value):
+            editting = self.field_title.value
+            self.state.value = Lang.value("contents.template.edit.page_title").format(name=editting)
+            self.gui.safe_update(self.state)
+            self.field_text.value = self.wiki.get_wikitext(self.field_title.value)
+            self.gui.safe_update(self.field_text)
+            self.wiki.logout()
+        else:
+            editting = self.field_title.value
+            self.state.value = Lang.value("contents.template.edit.new_page_title").format(name=editting)
+            self.wiki.logout()
+        
+        # Activate Buttons and Fields
+        self.button_cancel.disabled = False
+        self.button_upload.disabled = False
+        self.field_text.disabled = False
+        self.gui.safe_update(self.button_cancel)
+        self.gui.safe_update(self.button_upload)
+        self.gui.safe_update(self.field_text)
+
+        self.progress.state(False)
+        
+    
+    def cancel_edit(self):
+        # Fields
+        self.state.value = ""
+        self.field_text.value = ""
+        self.field_text.disabled = True
+        self.button_cancel.disabled = True
+        self.button_upload.disabled = True
+        self.field_title.disabled = False
+        self.button_edit.disabled = False
+
+        self.gui.safe_update(self.field_text)
+        self.gui.safe_update(self.button_cancel)
+        self.gui.safe_update(self.button_upload)
+        self.gui.safe_update(self.field_title)
+        self.gui.safe_update(self.button_edit)
+        self.gui.safe_update(self.state)
+
+class Remove():
+    files: list = []
+    categories: list = []
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+        self.lists = self.gui.UpdateResult(self.page)
+        self.state = ft.Text("")
+        self.selected = ft.Text("")
+        self.ring = self.gui.ProgressRing(self.page)
+
+        self.pages = ft.TextField(min_lines=7, max_lines=7, value="", label=Lang.value("contents.template.remove.page"))
+        self.reason = ft.TextField(min_lines=1, max_lines=1, value="", label=Lang.value("contents.template.remove.reason"))
+        self.button = ft.FilledTonalButton(text=Lang.value("contents.template.remove.action"), icon=ft.icons.DELETE, on_click=lambda e: self.remove_pages())
+    
+    def main(self):
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.template.remove.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.template.remove.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+                self.pages,
+                ft.Container(padding=10),
+                self.reason,
+
+                ft.Divider(),
+                ft.Container(
+                    content=self.lists.main(),
+                    padding=10,
+                    height=200
+                ),
+                self.button,
+
+            ],
+            spacing=0
+        )
+
+    def remove_pages(self):
+        pages = self.pages.value
+        self.pages.disabled = True
+        self.reason.disabled = True
+        self.button.disabled = True
+        self.gui.safe_update(self.pages)
+        self.gui.safe_update(self.reason)
+        self.gui.safe_update(self.button)
+
+        self.wiki.login()
+        for page in pages.splitlines():
+            page = page.strip()
+            try:
+                if self.wiki.check_exist(page):
+                    self.wiki.delete_page(page, self.reason.value, True)
+                    self.lists.append(page, "", "success", Lang.value("contents.template.remove.success"))
+                else:
+                    self.lists.append(page, "", "warn", Lang.value("contents.template.remove.not_found"))
+                    
+            except Exception as e:
+                self.lists.append(page, "", "error", Lang.value("contents.template.remove.failed"), str(e))
+            
+        self.pages.disabled = False
+        self.reason.disabled = False
+        self.button.disabled = False
+        self.gui.safe_update(self.pages)
+        self.gui.safe_update(self.reason)
+        self.gui.safe_update(self.button)
+
+class Contentmodel():
+    files: list = []
+    categories: list = []
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+        self.lists = self.gui.UpdateResult(self.page)
+        self.state = ft.Text("")
+        self.selected = ft.Text("")
+        self.ring = self.gui.ProgressRing(self.page)
+
+        self.pages = ft.TextField(min_lines=7, max_lines=7, value="", label=Lang.value("contents.template.contentmodel.page"))
+        self.button = ft.FilledTonalButton(text=Lang.value("contents.template.contentmodel.action"), icon=ft.icons.DELETE, on_click=lambda e: self.change_models())
+        self.dropdown = ft.Dropdown(
+            label=Lang.value("contents.template.contentmodel.contentmodel"),
+            options=[
+                ft.dropdown.Option("wikitext", text=Lang.value("contents.template.contentmodel.model.wikitext")),
+                ft.dropdown.Option("GeoJSON", text=Lang.value("contents.template.contentmodel.model.GeoJSON")),
+                ft.dropdown.Option("GeoJson", text=Lang.value("contents.template.contentmodel.model.GeoJson")),
+                ft.dropdown.Option("sanitized-css", text=Lang.value("contents.template.contentmodel.model.sanitized-css")),
+                ft.dropdown.Option("javascript", text=Lang.value("contents.template.contentmodel.model.javascript")),
+                ft.dropdown.Option("json", text=Lang.value("contents.template.contentmodel.model.json")),
+                ft.dropdown.Option("css", text=Lang.value("contents.template.contentmodel.model.css")),
+                ft.dropdown.Option("text", text=Lang.value("contents.template.contentmodel.model.text"))
+            ]
+        )
+        self.dropdown.value = "wikitext"
+    
+    def main(self):
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.template.contentmodel.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.template.contentmodel.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+                self.pages,
+                ft.Container(padding=10),
+                self.dropdown,
+
+                ft.Divider(),
+                ft.Container(
+                    content=self.lists.main(),
+                    padding=10,
+                    height=200
+                ),
+                self.button,
+
+            ],
+            spacing=0
+        )
+
+    def change_models(self):
+        pages = self.pages.value
+        self.pages.disabled = True
+        self.button.disabled = True
+        self.gui.safe_update(self.pages)
+        self.gui.safe_update(self.button)
+
+        self.wiki.login()
+        for page in pages.splitlines():
+            page = page.strip()
+            try:
+                if self.wiki.check_exist(page):
+                    self.wiki.changecontentmodel(page, self.dropdown.value)
+                    self.lists.append(page, "", "success", Lang.value("contents.template.contentmodel.success"))
+                else:
+                    self.lists.append(page, "", "warn", Lang.value("contents.template.contentmodel.not_found"))
+                    
+            except Exception as e:
+                self.lists.append(page, "", "error", Lang.value("contents.template.contentmodel.failed"), str(e))
+            
+        self.pages.disabled = False
+        self.button.disabled = False
+        self.gui.safe_update(self.pages)
+        self.gui.safe_update(self.button)
+
 
 class Cite():
     page: ft.Page
@@ -488,12 +769,12 @@ class Cite():
             self.gui.safe_update(self.field_template_website)
             self.gui.safe_update(self.field_template_date)
 
-        elif "twitter.com" in address:
+        elif "twitter.com" in address or "x.com" in address:
             v = Tweet(_url)
             url = v.url
             title = v.text
             author = v.id
-            website = "Twitter"
+            website = "X"
             date =  datetime.datetime.strftime(v.date, "%Y-%m-%d")
 
             title = re.sub("\n+", " ", title)
@@ -565,4 +846,301 @@ class Cite():
             page.dialog = dialog
             dialog.open = True
             gui.safe_update(page)
+
+class Contracts():
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+
+        self.state = ft.Text()
+        self.ring = self.gui.ProgressRing(self.page)
+        self.lists = self.gui.UpdateResult(self.page)
+        self.switch_update = ft.Switch(label=Lang.value("contents.template.contracts.toggle_update_off"), value=False)
+
+        def on_changed_update(e):
+            if self.switch_update.value:
+                self.switch_update.label = Lang.value("contents.template.contracts.toggle_update_on")
+            else:
+                self.switch_update.label = Lang.value("contents.template.contracts.toggle_update_off")
+            self.gui.safe_update(self.switch_update)
+    
+        self.switch_update.on_change = on_changed_update
+
+    def main(self):
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.template.contracts.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.template.contracts.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+                self.switch_update,
+                ft.Row([
+                    ft.FilledTonalButton(
+                        text=Lang.value("contents.template.contracts.action"),
+                        icon=ft.icons.AUDIO_FILE,
+                        on_click=lambda e: self.create()
+                    ),
+                    self.gui.directory_button("output/contracts"),
+                    self.ring.main(),
+                    self.state
+                ]),
+                ft.Container(
+                    content=self.lists.main(),
+                    padding=10,
+                    height=200
+                ),
+            ],
+            spacing=0
+        )
+    
+    def create(self):
+        self.ring.state(True)
+        contracts = JSON.read("api/contracts.json")
+
+        os.makedirs(f"output/contracts/page/", exist_ok=True)
+
+        count: int = 1
+        for contract in contracts:
+            title_disp = contract["displayName"][Lang.value("common.localize")]
+            self.state.value = Lang.value("contents.template.contracts.progress").format(count=count, max=len(contracts), name=title_disp)
+            self.gui.safe_update(self.state)
+
+            with open("output/contracts/"+WikiString.wiki_format(title_disp)+".txt", "w", encoding="UTF-8") as f:
+                name, template = self.create_template(contract)
+                f.write(template)
+                if self.switch_update.value:
+                    self.wiki.login()
+                    self.wiki.edit_page(page=name, text=template, editonly=False)
+                    self.wiki.logout()
+
+            try:
+                pass
+            except Exception as e:
+                self.gui.popup_error(Lang.value("contents.template.contracts.error_with_info").format(info=Lang.value("contents.template.contracts.template")), str(e))
+
+            try:
+                with open("output/contracts/page/"+WikiString.wiki_format(title_disp)+".txt", "w", encoding="UTF-8") as f:
+                    f.write(self.create_page(contract))
+            except Exception as e:
+                self.gui.popup_error(Lang.value("contents.template.contracts.error_with_info").format(info=Lang.value("contents.template.contracts.page")), str(e))
+        
+            count += 1
+
+    def create_template(self, contract: dict):
+        title = contract["displayName"]["ja-JP"]
+        template = ""
+
+        i = 0
+        j = 0
+        for chapter in contract["content"]["chapters"]:
+            epilogue = chapter["isEpilogue"]
+            levels = chapter["levels"]
+            free_rewards = chapter["freeRewards"]
+
+
+            for level in levels:
+                tier: int
+                if epilogue:
+                    j+=1
+                    tier = j
+                else:
+                    i+=1
+                    tier = i
+
+                reward = level["reward"] 
+                item, description, file = self.get_item_detail(reward["type"], reward["uuid"], reward["amount"])
+                
+                vp = -1
+                kc = -1
+                xp = -1
+                if level["isPurchasableWithVP"]:
+                    vp = level["vpCost"]
+                if level["isPurchasableWithDough"]:
+                    kc = level["doughCost"]
+                if contract["content"]["relationType"]!="Agent":
+                    xp = level["xp"]
+                template += self.make_item(item, description, file, tier, xp, vp, kc, epilogue, False)
+            
+            if free_rewards!=None:
+                for free_reward in free_rewards:
+                    item, description, file = self.get_item_detail(free_reward["type"], free_reward["uuid"], free_reward["amount"])
+                    template += self.make_item(item, description, file, tier, -1, -1, -1, epilogue, True)
+            
+        return self.get_pagename(contract), "{{Contracts-begin|" + title + "|name=" + self.get_pagename(contract) + "}}\n" + template + "{{Contracts-end}}<noinclude>\n[[カテゴリ:バトルパステンプレート]]\n</noinclude>"
+
+
+
+    def create_page(self, contract: dict):
+        i = 0
+        j = 0
+
+        titles = ""
+        sprays = ""
+        playercards = ""
+        buddies = ""
+        skins: dict = {}
+        is_skin: bool = False
+        for weapon in JSON.read("api/weapons.json"):
+            skins[weapon["displayName"]["ja-JP"]] = ""
+
+        def make_items(reward, titles, sprays, playercards, buddies, skins):
+            item, description, file = self.get_item_detail(reward["type"], reward["uuid"], reward["amount"])
+            if len(description)>0:
+                description = "|" + description
+            if reward["type"]=="PlayerCard":
+                playercards += "{{Gallery|"+file+f"|{item}{description}"+"}}\n"
+            elif reward["type"]=="Spray":
+                sprays += "{{Gallery|"+file+f"|{item}{description}"+"}}\n"
+            elif reward["type"]=="EquippableCharmLevel":
+                buddies += "{{Gallery|"+file+f"|{item}{description}"+"}}\n"
+            elif reward["type"]=="Title":
+                titles += "{{Gallery|[[File:Player_Titles Red.png]]"+f"|{item}{description}"+"}}\n"
+            elif reward["type"]=="EquippableSkinLevel":
+                uuid = API.skin_parent_by_skinlevel_uuid(reward["uuid"])["uuid"]
+                weapon = API.weapon_parent_by_skin_uuid(uuid)
+                #skins[weapon["displayName"]["ja-JP"]] += CommonTemplate.skin(uuid) + "\n"
+            return titles, sprays, playercards, buddies, skins
+
+
+        for chapter in contract["content"]["chapters"]:
+            epilogue = chapter["isEpilogue"]
+            levels = chapter["levels"]
+            free_rewards = chapter["freeRewards"]
+
+            for level in levels:
+                tier: int
+                if epilogue:
+                    j+=1
+                else:
+                    i+=1
+
+                reward = level["reward"] 
+                titles, sprays, playercards, buddies, skins = make_items(reward, titles, sprays, playercards, buddies, skins)
+                if reward["type"]=="EquippableSkinLevel" and is_skin==False:
+                    is_skin = True
+
+            if free_rewards!=None:
+                for free_reward in free_rewards:
+                    titles, sprays, playercards, buddies, skins = make_items(free_reward, titles, sprays, playercards, buddies, skins)
+                    if free_reward["type"]=="EquippableSkinLevel" and is_skin==False:
+                        is_skin = True
+        
+        tier = str(i)
+        if j>0:
+            tier += "（エピローグを除く）"
+
+        page = [
+            "{{Infobox contract",
+            "|name=" + contract["displayName"]["ja-JP"],
+            "|name-latin=" + contract["displayName"]["en-US"],
+            "|max=" + tier,
+            "}}",
+            "",
+            "",
+            "== 概要 ==",
+            "",
+            "{{-}}"
+            "",
+            "== 内容 ==",
+            "{{" + self.get_pagename(contract).replace("Template:", "") + "}}",
+            "",
+        ]
+
+        if len(titles)>0:
+            page.append("=== プレイヤータイトル ===")
+            page.append("{{Gallery-begin}}\n" + titles + "{{Gallery-end}}")
+            page.append("")
+        if len(playercards)>0:
+            page.append("=== プレイヤーカード ===")
+            page.append("{{Gallery-begin}}\n" + playercards + "{{Gallery-end}}")
+            page.append("")
+        if len(sprays)>0:
+            page.append("=== スプレー ===")
+            page.append("{{Gallery-begin}}\n" + sprays + "{{Gallery-end}}")
+            page.append("")
+        if len(buddies)>0:
+            page.append("=== ガンバディー ===")
+            page.append("{{Gallery-begin}}\n" + buddies + "{{Gallery-end}}")
+            page.append("")
+        if is_skin>0:
+            page.append("=== スキン ===")
+
+            for k,s in skins.items():
+                if len(s)>0:
+                    page.append(f"==== {k} ====")
+                    page.append(s)
+        
+        page.append("==関連リンク==")
+        page.append("")
+        page.append("==脚注==")
+        page.append("{{reflist}}")
+        page.append("")
+        page.append("{{Navbox contracts}}")
+
+        ret = ""
+        for p in page:
+            ret += p + "\n"
+        return ret
+
+    def get_pagename(self, contract: dict):
+        return "Template:Contracts/" + WikiString.wiki_format(contract["displayName"]["en-US"])
+
+    def make_item(self, title: str, description: str, file: str, tier: int, exp: int, vp: int, kc: int, epilogue: bool=False, free: bool = False):
+        ret = "{{Contracts"
+        ret += f"|{title}"
+        
+        ret += f"|{description}"
+        ret += f"|{file}"
+
+        if epilogue:
+            ret += f"|tier=EPILOGUE {tier}"
+        else:
+            ret += f"|tier=TIER {tier}"
+        
+        if exp>=0:
+            ret += f"|exp={exp}"
+        if vp>=0:
+            ret += f"|vp={vp}"
+        if kc>=0:
+            ret += f"|kc={kc}"
+        
+        if free==True:
+            ret += f"|free=yes"
+        if epilogue==True:
+            ret += f"|premium=yes"
+        
+        return ret + "}}\n"
+
+    def get_item_detail(self, type: str, uuid: str, amount: int = 0):
+        if type=="PlayerCard":
+            data = API.playercard_by_uuid(uuid)
+            return data["displayName"]["ja-JP"], "", FileName.playercard(data, "template")
+        elif type=="EquippableSkinLevel":
+            data = API.skin_by_skinlevel_uuid(uuid)
+            return data["displayName"]["ja-JP"], "", "[[File:"+FileName.weapon(data, "icon")+"]]"
+        elif type=="Title":
+            data = API.playertitle_by_uuid(uuid)
+            return data["displayName"]["ja-JP"], data["titleText"]["ja-JP"], "[[File:Player_Titles.png]]"
+        elif type=="Spray":
+            data = API.spray_by_uuid(uuid)
+            return data["displayName"]["ja-JP"], "", FileName.spray(data, "template")
+        elif type=="EquippableCharmLevel":
+            data = API.buddy_by_charmlevel_uuid(uuid)
+            return data["displayName"]["ja-JP"], "", FileName.buddy(data, "template")
+        elif type=="Currency":
+            data = API.currency_by_uuid(uuid)
+            if uuid=="85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741": #VP
+                return "[[ヴァロラントポイント]]", "{{vp|" + str(amount) +"|invert=no}}", "[[File:Valorant_Point.png]]"
+            elif uuid=="85ca954a-41f2-ce94-9b45-8ca3dd39a00d": #KC
+                return "[[キングダムクレジット]]", "{{kc|" + str(amount) +"|invert=no}}", "[[File:Kingdom Credit.png]]"
+            elif uuid=="f08d4ae3-939c-4576-ab26-09ce1f23bb37": #Free Agent
+                return "[[フリーエージェント]]", "", "[[File:Free_Agent.png]]"
+            elif uuid=="e59aa87c-4cbf-517a-5983-6e81511be9b7": #FRP
+                return "[[レディアナイトポイント]]", "{{rp|" + str(amount*10) +"|invert=no}}", "[[File:Radianite Point.png]]"
+        elif type=="Agent":
+            data = API.agent_by_uuid(uuid)
+            return "[["+data["displayName"]["ja-JP"]+"]]", "", "[[File:"+FileName.agent(data, "icon")+"]]"
 

@@ -4,7 +4,7 @@ from utils.tools.json import JSON
 class Config:
     data = {
         "lang": "ja-JP",
-        "api": "https://valorantjp.miraheze.org/w/api.php",
+        "api": "https://valorantjp.miraheze.org/",
         "theme": "system",
         "logo": "",
         "wikibot": {

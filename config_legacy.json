@@ -1,0 +1,11 @@
+{
+  "lang": "ja-JP",
+  "api": "https://valorantjp.miraheze.org/",
+  "theme": "system",
+  "logo": "",
+  "wikibot": {
+    "id": "Shulmj@VJW_Updater",
+    "password": "7oc2pgukekr40516bg5nqkenj8rct3hg"
+  },
+  "webdriver": "chrome"
+}

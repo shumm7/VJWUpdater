@@ -19,8 +19,6 @@ from utils.cogs.esports import Esports
 from utils.cogs.audio import Audio
 from utils.cogs.misc import Misc
 
-from utils.tools.json import Lua
-
 class Core():
     page: ft.Page
     gui: Gui
@@ -56,7 +54,6 @@ class Core():
         self.misc = Misc(self.wiki, self.gui, self.page)
         
         self.version_check()
-    
 
     def set_window(self, page: ft.Page):
         self.page = page
