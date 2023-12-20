@@ -350,6 +350,9 @@ class FetchAll():
         
         self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.playertitle")))
         API.playertitles()
+
+        self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.spray")))
+        API.sprays()
         
         self.update_state(Lang.value("contents.cache.fetch.fetch").format(name=Lang.value("common.season")))
         API.seasons()

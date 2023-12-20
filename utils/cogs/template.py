@@ -26,6 +26,7 @@ class Template():
         self.edit = Edit(wiki, gui, page)
         self.contentmodel = Contentmodel(wiki, gui, page)
         self.remove = Remove(wiki, gui, page)
+        self.purge = Purge(wiki, gui, page)
         self.contracts = Contracts(wiki, gui, page)
     
     def main(self):
@@ -38,6 +39,7 @@ class Template():
                 self.edit.main(),
                 self.upload.main(),
                 self.remove.main(),
+                self.purge.main(),
                 self.contentmodel.main(),
                 self.cite.main(),
                 self.contracts.main()
@@ -71,6 +73,11 @@ class Template():
                             icon=ft.icons.DELETE_OUTLINED,
                             selected_icon=ft.icons.DELETE,
                             label=Lang.value("contents.template.remove.title"),
+                        ),
+                        ft.NavigationRailDestination(
+                            icon=ft.icons.AUTORENEW_OUTLINED,
+                            selected_icon=ft.icons.AUTORENEW,
+                            label=Lang.value("contents.template.purge.title"),
                         ),
                         ft.NavigationRailDestination(
                             icon=ft.icons.DELETE_OUTLINED,
@@ -458,6 +465,81 @@ class Remove():
         self.gui.safe_update(self.pages)
         self.gui.safe_update(self.reason)
         self.gui.safe_update(self.button)
+
+class Purge():
+    files: list = []
+    categories: list = []
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+        self.state = ft.Text("")
+        self.selected = ft.Text("")
+        self.ring = self.gui.ProgressRing(self.page)
+
+        self.pages = ft.TextField(min_lines=7, max_lines=7, value="", label=Lang.value("contents.template.purge.page"))
+        self.button = ft.FilledTonalButton(text=Lang.value("contents.template.purge.action"), icon=ft.icons.DELETE, on_click=lambda e: self.purge_pages())
+    
+        self.switch_edit = ft.Switch(label=Lang.value("contents.template.purge.toggle_edit_off"), value=False)
+
+        def on_changed_edit(e):
+            if self.switch_edit.value:
+                self.switch_edit.label = Lang.value("contents.template.purge.toggle_edit_on")
+            else:
+                self.switch_edit.label = Lang.value("contents.template.purge.toggle_edit_off")
+            self.gui.safe_update(self.switch_edit)
+        
+        self.switch_edit .on_change = on_changed_edit 
+
+    def main(self):
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.template.purge.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.template.purge.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+                self.switch_edit,
+                self.pages,
+                ft.Container(padding=10),
+
+                ft.Divider(),
+                self.button,
+
+            ],
+            spacing=0
+        )
+
+    def purge_pages(self):
+        pages = self.pages.value
+        self.pages.disabled = True
+        self.button.disabled = True
+        self.gui.safe_update(self.pages)
+        self.gui.safe_update(self.button)
+
+        self.wiki.login()
+        try:
+            if self.switch_edit.value:
+                for page in pages.splitlines():
+                    page = page.strip()
+                    if self.wiki.check_exist(page):
+                        self.wiki.edit_page(page, "", mode="prepend", minor=True)
+                            
+            else:
+                self.wiki.purge(pages.splitlines())
+                
+        except Exception as e:
+            self.gui.popup_warn(Lang.value("contents.template.purge.failed"), str(e))
+        
+        finally:
+            self.gui.popup_warn(Lang.value("contents.template.purge.success"))
+            
+        self.pages.disabled = False
+        self.button.disabled = False
+        self.gui.safe_update(self.pages)
+        self.gui.safe_update(self.button)
+
 
 class Contentmodel():
     files: list = []

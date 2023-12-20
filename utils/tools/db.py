@@ -9,18 +9,24 @@ class Spray():
     def make_list():
         sprays = JSON.read("api/sprays.json")
         dictionary: dict = {}
-        row: list = []
+        row: dict = {
+            "Gear": [],
+            "Battlepass": [],
+            "Eventpass": [],
+            "Bundle": [],
+            "Misc": []
+        }
 
         agents = JSON.read("api/agents.json")
         contracts = JSON.read("api/contracts.json")
-        bundles = JSON.read("api/bundles2.json")
+        bundles = JSON.read("api/07.12.00.2164217/bundles2.json")
 
         # data
         dictionary = {}
         for d in sprays:
             dictionary[d["uuid"]] = {
                 "name": d["displayName"]["en-US"],
-                "title": d["displayName"]["ja-JP"],
+                "localized_name": d["displayName"]["ja-JP"],
                 "uuid": d["uuid"],
                 "image": FileName.spray(d, "image"),
                 "icon": FileName.spray(d, "icon"),
@@ -41,7 +47,7 @@ class Spray():
                                 dictionary[level["reward"]["uuid"]]["relation"].append("エージェントギア")
                                 dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                 sprays = API.remove_list_from_uuid(sprays, level["reward"]["uuid"])
-                                row.append(level["reward"]["uuid"])
+                                row["Gear"].append(level["reward"]["uuid"])
 
         # battlepass
         act: int = 1
@@ -57,7 +63,7 @@ class Spray():
                                 dictionary[level["reward"]["uuid"]]["relation"].append(f"Episode {episode}: Act {act}")
                                 dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                 sprays = API.remove_list_from_uuid(sprays, level["reward"]["uuid"])
-                                row.append(level["reward"]["uuid"])
+                                row["Battlepass"].append(level["reward"]["uuid"])
 
                         if chapter["freeRewards"]!=None:
                             for free_level in chapter["freeRewards"]:
@@ -67,7 +73,7 @@ class Spray():
                                     dictionary[free_level["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                     dictionary[free_level["uuid"]]["description"] = "無料報酬"
                                     sprays = API.remove_list_from_uuid(sprays, free_level["uuid"])
-                                    row.append(free_level["uuid"])
+                                    row["Battlepass"].append(free_level["uuid"])
             
             if act==3:
                 act = 1
@@ -85,7 +91,7 @@ class Spray():
                                 dictionary[level["reward"]["uuid"]]["relation"].append("イベントパス")
                                 dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                 sprays = API.remove_list_from_uuid(sprays, level["reward"]["uuid"])
-                                row.append(level["reward"]["uuid"])
+                                row["Eventpass"].append(level["reward"]["uuid"])
 
                         if chapter["freeRewards"]!=None:
                             for free_level in chapter["freeRewards"]:
@@ -94,27 +100,32 @@ class Spray():
                                     dictionary[free_level["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                     dictionary[free_level["uuid"]]["description"] = "無料報酬"
                                     sprays = API.remove_list_from_uuid(sprays, free_level["uuid"])
-                                    row.append(free_level["uuid"])
+                                    row["Eventpass"].append(free_level["uuid"])
         
         # bundle
-        for bundle in sorted(bundles, key=lambda x: (x["last_seen"] is None, x["last_seen"])):
-            if bundle["uuid"]=="2ed936df-4959-acc7-9aca-358d34a50619": #doodle buds
-                bundle["sprays"].append({"name": "Doodle Buds // Tactifriends Spray", "uuid": "8f9caa22-4dd6-5649-1007-0bbaf7001c04"})
-                bundle["sprays"].append({"name": "Doodle Buds // League of Legends Spray", "uuid": "bbdcf328-4f71-3c0c-7830-568913236d35"})
-            elif bundle["uuid"]=="2116a38e-4b71-f169-0d16-ce9289af4bfa": #prime
-                bundle["sprays"].append({"name": "Prime Brick Spray", "uuid": "880d5de5-4268-769d-5407-55921ad2db12"})
-            elif bundle["uuid"]=="e6032bbf-403e-47e4-8fbc-a1b212d966e7": #imperium
-                bundle["sprays"].append({"name": "Imperium Spray", "uuid": "229d49b4-4e8f-cb5a-12c9-39a5ed45e7ed"})
-            elif bundle["uuid"]=="3d580e29-435b-8e65-22f4-3c8b8974f5fd": #gaia's ep7
-                bundle["sprays"].append({"name": "Gaia's Vengeance, Ep 7 Spray", "uuid": "a418d89e-49af-141e-4edd-de9ec79c34da"})
+        addition = {
+            "2ed936df-4959-acc7-9aca-358d34a50619": [{"name": "Doodle Buds // Tactifriends Spray", "uuid": "8f9caa22-4dd6-5649-1007-0bbaf7001c04"}, {"name": "Doodle Buds // League of Legends Spray", "uuid": "bbdcf328-4f71-3c0c-7830-568913236d35"}], #doodle buds
+            "2116a38e-4b71-f169-0d16-ce9289af4bfa": [{"name": "Prime Brick Spray", "uuid": "880d5de5-4268-769d-5407-55921ad2db12"}], #prime
+            "e6032bbf-403e-47e4-8fbc-a1b212d966e7": [{"name": "Imperium Spray", "uuid": "229d49b4-4e8f-cb5a-12c9-39a5ed45e7ed"}], #imperium
+            "3d580e29-435b-8e65-22f4-3c8b8974f5fd": [{"name": "Gaia's Vengeance, Ep 7 Spray", "uuid": "a418d89e-49af-141e-4edd-de9ec79c34da"}], #gaia's ep7
+            "f79f85ec-48f8-6573-873a-75b4627b615e": [{"name": "Valiant Hero Spray", "uuid": "3baa428b-4e8e-df38-e50f-1e86f2f9584f"}], #valiant hero
+            "753739e7-4447-617c-8253-cf8d9d577b58": [{"name": "Sentinels of Light, Ep 7 Spray", "uuid": "0736596a-4ec0-7330-1f74-44843b6d0663"}], #sentinels of light (ep7)
+            "3ad3de55-422b-4076-a89f-81a38ce24973": [{"name": "Overdrive Spray", "uuid": "983d6cf0-43d5-900e-ca43-5298f44378af"}], #overdrive
+        }
+        for uuid,values in addition.items():
+            if not uuid in bundles:
+                b = API.bundle_by_uuid(uuid)
+                b["sprays"] = values
+                bundles.append(b)
 
+        for bundle in bundles:
             for bundle_spray in bundle["sprays"]:
                 for spray in sprays:
                     if bundle_spray["uuid"]==spray["uuid"]:
                         dictionary[spray["uuid"]]["relation"].append("スキンセット")
                         dictionary[spray["uuid"]]["bundle"] = API.get_bundle_name(bundle["uuid"])
                         sprays = API.remove_list_from_uuid(sprays, spray["uuid"])
-                        row.append(spray["uuid"])
+                        row["Bundle"].append(spray["uuid"])
         
         # prime gaming drops
         for d in API.get_prime_gaming_reward():
@@ -122,7 +133,7 @@ class Spray():
                 dictionary[d["uuid"]]["relation"].append("Prime Gaming")
                 dictionary[d["uuid"]]["description"] = d["date"]
                 sprays = API.remove_list_from_uuid(sprays, d["uuid"])
-                row.append(d["uuid"])
+                row["Misc"].append(d["uuid"])
 
         # misc
         misc = [
@@ -165,39 +176,47 @@ class Spray():
             {
                 "uuid": "8080ba65-4089-3487-dcf5-f298be03a470",
                 "description": "[[VCT 2023: Champions Los Angeles|Champions 2023]]の視聴報酬（2023年8月17日～26日）<ref>{{Cite|url=https://valorantesports.com/news/watch-play-and-earn-during-champions-2023/|title=CHAMPIONS 2023期間中に試合を観戦＆プレイして、アイテムを獲得しよう|website=VALORANT Esports|author=ANTON “JOKRCANTSPELL” FERRARO|date=2023-07-29}}</ref>"
+            },
+            {
+                "uuid": "41450726-4566-aca7-6b98-8d9fcd9105d7",
+                "description": "コミュニティーチャレンジの達成報酬<ref>{{Cite|url=https://twitter.com/VALORANTjp/status/1735781786523676765|title=OK、ウィングマン。これからも助けてくれるなら、持ってていいよ。3週目、そして最後のコミュニティーチャレンジが完了しました！ 報酬コード：CC-VLRNT-CCHAL-00003 shop.riotgames.com/ja-jp/redeem/より2023年12月31日まで引き換え可能です。|author=@VALORANTjp|website=X|date=2023-12-16}}</ref>"
             }
         ]
         for d in misc:
             dictionary[d["uuid"]]["relation"].append("その他")
             dictionary[d["uuid"]]["description"] = d["description"]
             sprays = API.remove_list_from_uuid(sprays, d["uuid"])
-            row.append(d["uuid"])
+            row["Misc"].append(d["uuid"])
         
         for d in sprays:
             dictionary[d["uuid"]]["relation"].append("その他")
             dictionary[d["uuid"]]["description"] = "未使用"
-            row.append(d["uuid"])
+            row["Misc"].append(d["uuid"])
 
-        #JSON.save("output/lists/sprays.json", dictionary)
-        #JSON.save("output/lists/remain_sprays.json", sprays)
         return dictionary, row
 
 class Playercard():
     def make_list():
         playercards = JSON.read("api/playercards.json")
         dictionary: dict = {}
-        row: list = []
+        row: dict = {
+            "Gear": [],
+            "Battlepass": [],
+            "Eventpass": [],
+            "Bundle": [],
+            "Misc": [],
+        }
 
         agents = JSON.read("api/agents.json")
         contracts = JSON.read("api/contracts.json")
-        bundles = JSON.read("api/bundles2.json")
+        bundles = JSON.read("api/07.12.00.2164217/bundles2.json")
 
         # data
         dictionary = {}
         for d in playercards:
             dictionary[d["uuid"]] = {
                 "name": d["displayName"]["en-US"],
-                "title": d["displayName"]["ja-JP"],
+                "localized_name": d["displayName"]["ja-JP"],
                 "uuid": d["uuid"],
                 "image": FileName.playercard(d, "large"),
                 "icon": FileName.playercard(d, "small"),
@@ -219,7 +238,7 @@ class Playercard():
                                 dictionary[level["reward"]["uuid"]]["relation"].append("エージェントギア")
                                 dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                 playercards = API.remove_list_from_uuid(playercards, level["reward"]["uuid"])
-                                row.append(level["reward"]["uuid"])
+                                row["Gear"].append(level["reward"]["uuid"])
 
         # battlepass
         act: int = 1
@@ -235,7 +254,7 @@ class Playercard():
                                 dictionary[level["reward"]["uuid"]]["relation"].append(f"Episode {episode}: Act {act}")
                                 dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                 playercards = API.remove_list_from_uuid(playercards, level["reward"]["uuid"])
-                                row.append(level["reward"]["uuid"])
+                                row["Battlepass"].append(level["reward"]["uuid"])
 
                         if chapter["freeRewards"]!=None:
                             for free_level in chapter["freeRewards"]:
@@ -245,7 +264,7 @@ class Playercard():
                                     dictionary[free_level["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                     dictionary[free_level["uuid"]]["description"] = "無料報酬"
                                     playercards = API.remove_list_from_uuid(playercards, free_level["uuid"])
-                                    row.append(free_level["uuid"])
+                                    row["Battlepass"].append(free_level["uuid"])
             
             if act==3:
                 act = 1
@@ -263,7 +282,7 @@ class Playercard():
                                 dictionary[level["reward"]["uuid"]]["relation"].append("イベントパス")
                                 dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                 playercards = API.remove_list_from_uuid(playercards, level["reward"]["uuid"])
-                                row.append(level["reward"]["uuid"])
+                                row["Eventpass"].append(level["reward"]["uuid"])
 
                         if chapter["freeRewards"]!=None:
                             for free_level in chapter["freeRewards"]:
@@ -272,26 +291,32 @@ class Playercard():
                                     dictionary[free_level["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
                                     dictionary[free_level["uuid"]]["description"] = "無料報酬"
                                     playercards = API.remove_list_from_uuid(playercards, free_level["uuid"])
-                                    row.append(free_level["uuid"])
+                                    row["Eventpass"].append(free_level["uuid"])
         
         # bundle
-        for bundle in sorted(bundles, key=lambda x: (x["last_seen"] is None, x["last_seen"])):
-            if bundle["uuid"]=="e6032bbf-403e-47e4-8fbc-a1b212d966e7": #imperium
-                bundle["cards"].append({"name": "Imperium Card", "uuid": "13b0954b-4347-6698-1141-4589e6ef726d"})
-            elif bundle["uuid"]=="3d580e29-435b-8e65-22f4-3c8b8974f5fd": #gaia's ep7
-                bundle["cards"].append({"name": "Gaia's Vengeance, Ep 7 Card", "uuid": "e6773d10-4a98-1ddf-d2c8-0783708dffb5"})
-            elif bundle["uuid"]=="d84cd2bf-42e5-34e8-062f-cba8d2c66fb2": #undercity
-                bundle["cards"].append({"name": "Undercity Card", "uuid": "02096add-4c34-b916-af22-50b3791da2f4"})
-            elif bundle["uuid"]=="54f8793c-4daa-6e45-bcfd-e9bfc742dc30": #origin
-                bundle["cards"].append({"name": "Origin Card", "uuid": "3c930c58-4f56-1a14-6397-c3bd42f31955"})
+        addition = {
+            "e6032bbf-403e-47e4-8fbc-a1b212d966e7": [{"name": "Imperium Card", "uuid": "13b0954b-4347-6698-1141-4589e6ef726d"}], #imperium
+            "3d580e29-435b-8e65-22f4-3c8b8974f5fd": [{"name": "Gaia's Vengeance, Ep 7 Card", "uuid": "e6773d10-4a98-1ddf-d2c8-0783708dffb5"}], #gaia's ep7
+            "d84cd2bf-42e5-34e8-062f-cba8d2c66fb2": [{"name": "Undercity Card", "uuid": "02096add-4c34-b916-af22-50b3791da2f4"}], #undercity
+            "54f8793c-4daa-6e45-bcfd-e9bfc742dc30": [{"name": "Origin Card", "uuid": "3c930c58-4f56-1a14-6397-c3bd42f31955"}], #origin
+            "f79f85ec-48f8-6573-873a-75b4627b615e": [{"name": "Valiant Hero Card", "uuid": "8de9de55-4e26-94e4-bdba-d790b1bd9b34"}], #valiant hero
+            "753739e7-4447-617c-8253-cf8d9d577b58": [{"name": "Sentinels of Light, Ep 7 Card", "uuid": "02ca101e-4f41-fc84-6412-f28230297d76"}], #sentinels of light (ep7)
+            "3ad3de55-422b-4076-a89f-81a38ce24973": [{"name": "Overdrive Card", "uuid": "9de26ca3-4203-989d-5c3f-a883af147ac7"}], #overdrive
+        }
+        for uuid,values in addition.items():
+            if not uuid in bundles:
+                b = API.bundle_by_uuid(uuid)
+                b["cards"] = values
+                bundles.append(b)
 
+        for bundle in bundles:
             for bundle_card in bundle["cards"]:
                 for d in playercards:
                     if bundle_card["uuid"]==d["uuid"]:
                         dictionary[d["uuid"]]["relation"].append("スキンセット")
                         dictionary[d["uuid"]]["bundle"] = API.get_bundle_name(bundle["uuid"])
                         playercards = API.remove_list_from_uuid(playercards, d["uuid"])
-                        row.append(d["uuid"])
+                        row["Bundle"].append(d["uuid"])
         
         # prime gaming drops
         for d in API.get_prime_gaming_reward():
@@ -299,7 +324,7 @@ class Playercard():
                 dictionary[d["uuid"]]["relation"].append("Prime Gaming")
                 dictionary[d["uuid"]]["description"] = d["date"]
                 playercards = API.remove_list_from_uuid(playercards, d["uuid"])
-                row.append(d["uuid"])
+                row["Misc"].append(d["uuid"])
 
         # premier
         premier = [
@@ -328,7 +353,7 @@ class Playercard():
             dictionary[d["uuid"]]["relation"].append("Premier")
             dictionary[d["uuid"]]["description"] = d["description"]
             playercards = API.remove_list_from_uuid(playercards, d["uuid"])
-            row.append(d["uuid"])
+            row["Misc"].append(d["uuid"])
 
         # misc
         misc = [
@@ -384,19 +409,35 @@ class Playercard():
                 "uuid": "01aa3a02-4ab1-0739-83fd-f3b37eba01db",
                 "description": "[[VCT 2023: Champions Los Angeles]]の決勝戦の視聴報酬（8月26日）<ref>{{Cite|url=https://valorantesports.com/news/watch-play-and-earn-during-champions-2023|title=CHAMPIONS 2023期間中に試合を観戦＆プレイして、アイテムを獲得しよう|date=2023-07-29|author=ANTON “JOKRCANTSPELL” FERRARO|website=VALORANT Esports}}</ref>"
             },
+            {
+                "uuid": "c3e4a7e3-48c4-8476-6bf5-39892718e1f2",
+                "description": "[[Red Bull Home Ground 2023]]（2023年11月3～5日）の視聴報酬。"
+            },
+            {
+                "uuid": "bf8a808a-48a5-8c66-cc66-39b49049f7b4",
+                "description": "2023年11月29日以降にログインすることで入手"
+            },
+            {
+                "uuid": "17712b8a-4555-8b65-2bbe-75a288069420",
+                "description": "コミュニティーチャレンジの達成報酬<ref>{{Cite|url=https://twitter.com/VALORANTjp/status/1733260166517190697|title=カードは配られた──500,300,100キル達成。プレイヤーカード2種が引き換え可能になりました。 報酬コード：CC-VLRNT-CCHAL-VAL02 shop.riotgames.com/ja-jp/redeem/ より2023年12月31日まで引き換え可能です。|website=X|date=2023-12-09|author=@VALORANTjp}}</ref>"
+            },
+            {
+                "uuid": "260c7a79-4d04-36d5-9b68-a097519459cd",
+                "description": "コミュニティーチャレンジの達成報酬<ref>{{Cite|url=https://twitter.com/VALORANTjp/status/1733260166517190697|title=カードは配られた──500,300,100キル達成。プレイヤーカード2種が引き換え可能になりました。 報酬コード：CC-VLRNT-CCHAL-VAL02 shop.riotgames.com/ja-jp/redeem/ より2023年12月31日まで引き換え可能です。|website=X|date=2023-12-09|author=@VALORANTjp}}</ref>"
+            }
         ]
         for d in misc:
             dictionary[d["uuid"]]["relation"].append("その他")
             dictionary[d["uuid"]]["description"] = d["description"]
             playercards = API.remove_list_from_uuid(playercards, d["uuid"])
-            row.append(d["uuid"])
+            row["Misc"].append(d["uuid"])
         
         
         # unused
         for d in playercards:
             dictionary[d["uuid"]]["relation"].append("その他")
             dictionary[d["uuid"]]["description"] = "未使用"
-            row.append(d["uuid"])
+            row["Misc"].append(d["uuid"])
 
         #JSON.save("output/lists/playercards.json", dictionary)
         #JSON.save("output/lists/remain_playercards.json", playercards)
@@ -406,18 +447,25 @@ class Buddy():
     def make_list():
         buddies = JSON.read("api/buddies.json")
         dictionary: dict = {}
-        row: list = []
+        row: dict = {
+            "Gear": [],
+            "Battlepass": [],
+            "Eventpass": [],
+            "Bundle": [],
+            "Competitive": [],
+            "Misc": []
+        }
 
         agents = JSON.read("api/agents.json")
         contracts = JSON.read("api/contracts.json")
-        bundles = JSON.read("api/bundles2.json")
+        bundles = JSON.read("api/07.12.00.2164217/bundles2.json")
         competitivetiers = JSON.read("api/competitivetiers.json")[-1]
 
         # data
         for d in buddies:
             dictionary[d["uuid"]] = {
                 "name": d["displayName"]["en-US"],
-                "title": d["displayName"]["ja-JP"],
+                "localized_name": d["displayName"]["ja-JP"],
                 "uuid": d["uuid"],
                 "image": FileName.buddy(d),
                 "relation": [],
@@ -438,7 +486,7 @@ class Buddy():
                                 dictionary[uuid]["relation"].append("エージェントギア")
                                 dictionary[uuid]["bundle"] = contract["displayName"]["ja-JP"]
                                 buddies = API.remove_list_from_uuid(buddies, uuid)
-                                row.append(uuid)
+                                row["Gear"].append(uuid)
 
         # battlepass
         act: int = 1
@@ -455,7 +503,7 @@ class Buddy():
                                 dictionary[uuid]["relation"].append(f"Episode {episode}: Act {act}")
                                 dictionary[uuid]["bundle"] = contract["displayName"]["ja-JP"]
                                 buddies = API.remove_list_from_uuid(buddies, uuid)
-                                row.append(uuid)
+                                row["Battlepass"].append(uuid)
 
                         if chapter["freeRewards"]!=None:
                             for free_level in chapter["freeRewards"]:
@@ -466,7 +514,7 @@ class Buddy():
                                     dictionary[uuid]["bundle"] = contract["displayName"]["ja-JP"]
                                     dictionary[uuid]["description"] = "無料報酬"
                                     buddies = API.remove_list_from_uuid(buddies, uuid)
-                                    row.append(uuid)
+                                    row["Battlepass"].append(uuid)
             
             if act==3:
                 act = 1
@@ -485,7 +533,7 @@ class Buddy():
                                 dictionary[uuid]["relation"].append("イベントパス")
                                 dictionary[uuid]["bundle"] = contract["displayName"]["ja-JP"]
                                 buddies = API.remove_list_from_uuid(buddies, uuid)
-                                row.append(uuid)
+                                row["Eventpass"].append(uuid)
 
                         if chapter["freeRewards"]!=None:
                             for free_level in chapter["freeRewards"]:
@@ -495,25 +543,32 @@ class Buddy():
                                     dictionary[uuid]["bundle"] = contract["displayName"]["ja-JP"]
                                     dictionary[uuid]["description"] = "無料報酬"
                                     buddies = API.remove_list_from_uuid(buddies, uuid)
-                                    row.append(uuid)
+                                    row["Eventpass"].append(uuid)
         
         # bundle
-        for bundle in sorted(bundles, key=lambda x: (x["last_seen"] is None, x["last_seen"])):
-            if bundle["uuid"]=="e6032bbf-403e-47e4-8fbc-a1b212d966e7": #imperium
-                bundle["buddies"].append({"name": "Imperium Buddy", "uuid": "8f32610e-48f1-4d6f-46ad-90911845dad3"})
-            elif bundle["uuid"]=="3d580e29-435b-8e65-22f4-3c8b8974f5fd": #gaia's ep7
-                bundle["buddies"].append({"name": "Gaia's Vengeance, Ep 7 Buddy", "uuid": "6bdc0477-4b5a-94ed-b944-f284de3b4bd8"})
-            elif bundle["uuid"]=="f7f37856-4af7-9b0e-08aa-91a5207c0439": #spectrum
-                bundle["buddies"].append({"name": "Zedd Buddy", "uuid": "70963a6d-45b7-8fd4-c6aa-62b2155715aa"})
+        addition = {
+            "e6032bbf-403e-47e4-8fbc-a1b212d966e7": [{"name": "Imperium Buddy", "uuid": "8f32610e-48f1-4d6f-46ad-90911845dad3"}], #imperium
+            "3d580e29-435b-8e65-22f4-3c8b8974f5fd": [{"name": "Gaia's Vengeance, Ep 7 Buddy", "uuid": "6bdc0477-4b5a-94ed-b944-f284de3b4bd8"}], #gaia's ep7
+            "f7f37856-4af7-9b0e-08aa-91a5207c0439": [{"name": "Zedd Buddy", "uuid": "70963a6d-45b7-8fd4-c6aa-62b2155715aa"}], #spectrum
+            "f79f85ec-48f8-6573-873a-75b4627b615e": [{"name": "Valiant Hero Buddy", "uuid": "c907c26b-4d42-d60c-ce3a-06b96f911966"}], #valiant hero
+            "753739e7-4447-617c-8253-cf8d9d577b58": [{"name": "Sentinels of Light, Ep 7 Buddy", "uuid": "d655890d-47fb-9f93-73a0-e2bd661f9c45"}], #sentinels of light (ep7)
+            "3ad3de55-422b-4076-a89f-81a38ce24973": [{"name": "Overdrive Buddy", "uuid": "8b869090-4f20-f809-1932-67909dd92b1f"}], #overdrive
 
+        }
+        for uuid,values in addition.items():
+            if not uuid in bundles:
+                b = API.bundle_by_uuid(uuid)
+                b["buddies"] = values
+                bundles.append(b)
 
+        for bundle in bundles:
             for bundle_buddy in bundle["buddies"]:
                 for d in buddies:
                     if bundle_buddy["uuid"]==d["uuid"]:
                         dictionary[d["uuid"]]["relation"].append("スキンセット")
                         dictionary[d["uuid"]]["bundle"] = API.get_bundle_name(bundle["uuid"])
                         buddies = API.remove_list_from_uuid(buddies, d["uuid"])
-                        row.append(d["uuid"])
+                        row["Bundle"].append(d["uuid"])
         
         # prime gaming drops
         for d in API.get_prime_gaming_reward():
@@ -521,6 +576,7 @@ class Buddy():
                 dictionary[d["uuid"]]["relation"].append("Prime Gaming")
                 dictionary[d["uuid"]]["description"] = d["date"]
                 buddies = API.remove_list_from_uuid(buddies, d["uuid"])
+                row["Misc"].append(d["uuid"])
 
         # event winner
         winner = [
@@ -545,40 +601,65 @@ class Buddy():
             dictionary[d["uuid"]]["relation"].append("大会優勝報酬")
             dictionary[d["uuid"]]["description"] = d["description"]
             buddies = API.remove_list_from_uuid(buddies, d["uuid"])
-            row.append(d["uuid"])
+            row["Misc"].append(d["uuid"])
 
-        # event winner
+        # premier
         premier = [
+            # ignition
             {
                 "uuid": "ac306edc-49bd-0f04-0104-afa2ae783b99",
                 "description": "[[Premier]] イグニッションステージで優勝する"
             },
+
+            # release
             {
                 "uuid": "d3a6c031-4090-e50e-03a4-b2b4afbf141e",
-                "description": "[[Premier]]（オープンディビジョン）で優勝する"
+                "description": "[[Premier]]（リリースステージ）のオープンディビジョンで優勝する"
             },
             {
                 "uuid": "8ef76df3-4f31-4a8b-534b-b29be6f68bed",
-                "description": "[[Premier]]（インターミディエイトディビジョン）で優勝する"
+                "description": "[[Premier]]（リリースステージ）のインターミディエイトディビジョンで優勝する"
             },
             {
                 "uuid": "8d6f45c8-4031-7104-6079-1f934c30917e",
-                "description": "[[Premier]]（アドバンスドディビジョン）で優勝する"
+                "description": "[[Premier]]（リリースステージ）のアドバンスドディビジョンで優勝する"
             },
             {
                 "uuid": "a1bc1340-4884-7eb2-ceeb-aebea6ff5e3b",
-                "description": "[[Premier]]（エリートディビジョン）で優勝する"
+                "description": "[[Premier]]（リリースステージ）のエリートディビジョンで優勝する"
             },
             {
                 "uuid": "ffde61af-4686-0d77-11c2-9ea357381b87",
-                "description": "[[Premier]]（コンテンダーディビジョン）で優勝する"
+                "description": "[[Premier]]（リリースステージ）のコンテンダーディビジョンで優勝する"
+            },
+
+            # ep7act3
+            {
+                "uuid": "46473ed2-4e80-0066-4a0d-a9b7905d93fa",
+                "description": "[[Premier]]（{{Act|7|3}}）のオープンディビジョンで優勝する"
+            },
+            {
+                "uuid": "68f6dbbb-422b-428b-9ef0-3d926312e7cb",
+                "description": "[[Premier]]（{{Act|7|3}}）のインターミディエイトディビジョンで優勝する"
+            },
+            {
+                "uuid": "b13a445f-4ff4-fd0e-01fa-c786e00e1bdb",
+                "description": "[[Premier]]（{{Act|7|3}}）のアドバンスドディビジョンで優勝する"
+            },
+            {
+                "uuid": "a8834ead-4bba-4405-40ec-40b7c7d8d8e4",
+                "description": "[[Premier]]（{{Act|7|3}}）のエリートディビジョンで優勝する"
+            },
+            {
+                "uuid": "deed2aa7-4466-4df9-3fd8-edb372871d51",
+                "description": "[[Premier]]（{{Act|7|3}}）のコンテンダーディビジョンで優勝する"
             },
         ]
         for d in premier:
             dictionary[d["uuid"]]["relation"].append("Premier")
             dictionary[d["uuid"]]["description"] = d["description"]
             buddies = API.remove_list_from_uuid(buddies, d["uuid"])
-            row.append(d["uuid"])
+            row["Competitive"].append(d["uuid"])
 
         # misc
         misc = [
@@ -626,12 +707,24 @@ class Buddy():
                 "uuid": "d2b317f7-4f19-7052-cd50-33a32f210da0",
                 "description": "[[VCT 2023: LOCK//IN São Paulo]]の決勝戦（2023年3月4日）の視聴報酬<ref>{{Cite|url=https://valorantesports.com/news/watch-vct-lock-in-earn-drops|title=VCT23 LOCK//INを観戦してDROPSを獲得しよう|quote=3月4日にグランドファイナルの試合をライブ配信で観戦すると獲得できます|website=VALORANT Esports|date=2023-02-08}}</ref>"
             },
+            {
+                "uuid": "ba57ccb8-4536-1859-22ca-419eeda037d2",
+                "description": "[[VCT 2023: Champions Los Angeles]]の現地会場にてVerizonが実施したキャンペーンの報酬"
+            },
+            {
+                "uuid": "8eec6c97-4765-f374-c37e-0e9a9b02eed5",
+                "description": "[[VCT 2023: Game Changers Championship]]の決勝戦（2023年12月4日）の視聴報酬<ref>{{Cite|url=https://valorantesports.com/news/watch-and-earn-during-game-changers-championship-2023/|title=GAME CHANGERS CHAMPIONSHIP 2023を観戦して報酬を獲得|website=VALORANT Esports|author=Anton “JokrCantSpell” Ferraro|date=2023-11-28}}</ref>"
+            },
+            {
+                "uuid": "6364afb1-4ae0-3c71-f5a8-89b7f863c14e",
+                "description": "コミュニティーチャレンジの達成報酬<ref>{{Cite|url=https://twitter.com/VALORANTjp/status/1730647957543022886|title=皆さん全員に“お墨付き”を。「アザラシのお墨付き」ガンバディーが獲得可能になりました！ 報酬コード：CC-VLRNT-CCHAL-00001 shop.riotgames.com/ja-jp/redeem/ より2023年12月31日まで引き換え可能です。|website=X|date=2023-12-02|author=@VALORANTjp}}</ref>"
+            }
         ]
         for d in misc:
             dictionary[d["uuid"]]["relation"].append("その他")
             dictionary[d["uuid"]]["description"] = d["description"]
             buddies = API.remove_list_from_uuid(buddies, d["uuid"])
-            row.append(d["uuid"])
+            row["Misc"].append(d["uuid"])
         
         # competitive
         episodes = API.get_episode_list()
@@ -642,13 +735,13 @@ class Buddy():
                         dictionary[buddy["uuid"]]["relation"].append("コンペティティブ")
                         dictionary[buddy["uuid"]]["relation"].append(f"Episode {i+1}")
                         buddies = API.remove_list_from_uuid(buddies, buddy["uuid"])
-                        row.append(buddy["uuid"])
+                        row["Competitive"].append(buddy["uuid"])
         
         # unused
         for d in buddies:
             dictionary[d["uuid"]]["relation"].append("その他")
             dictionary[d["uuid"]]["description"] = "未使用"
-            row.append(d["uuid"])
+            row["Misc"].append(d["uuid"])
 
         #JSON.save("output/lists/buddies.json", dictionary)
         #JSON.save("output/lists/remain_buddies.json", buddies)
@@ -677,7 +770,7 @@ class Weapon_Skin():
 
             dictionary[skin["uuid"]] = {
                 "name": name_us,
-                "title": name,
+                "localized_name": name,
                 "uuid": skin["uuid"],
                 "weapon": weapon["displayName"]["ja-JP"],
                 "image": FileName.weapon(skin, "icon", WikiString.wiki_format(skin.get("displayName", {})["en-US"]), weapon["displayName"]["en-US"]),
@@ -759,3 +852,346 @@ class Weapon_Skin():
         #JSON.save("output/lists/remain_sprays.json", sprays)
         return dictionary, row
     
+class Levelborder():
+    def make_list():
+        borders = JSON.read("api/levelborders.json")
+        dictionary: dict = {}
+        row: list = []
+
+        # data
+        for border in borders:
+            level = border["startingLevel"]
+            dictionary[border["uuid"]] = {
+                "level": level,
+                "localized_name": f"レベル{level}ボーダー",
+                "uuid": border["uuid"],
+                "border": FileName.levelborder(border, "levelNumberAppearance"),
+                "frame": FileName.levelborder(border, "smallPlayerCardAppearance")
+            }
+            row.append(border["uuid"])
+
+        return dictionary, row
+
+class Playertitle():
+    def make_list():
+        playertitles = JSON.read("api/playertitles.json")
+        dictionary: dict = {}
+        row: dict = {
+            "Gear": [],
+            "Battlepass": [],
+            "Eventpass": [],
+            "Bundle": [],
+            "Misc": [],
+        }
+
+        agents = JSON.read("api/agents.json")
+        contracts = JSON.read("api/contracts.json")
+        bundles = JSON.read("api/07.12.00.2164217/bundles2.json")
+
+        # data
+        dictionary = {}
+        for d in playertitles:
+            if d["displayName"]!=None:
+                dictionary[d["uuid"]] = {
+                    "name": d["displayName"]["en-US"],
+                    "localized_name": d["displayName"]["ja-JP"],
+                    "uuid": d["uuid"],
+                    "title": d["titleText"]["ja-JP"],
+                    "relation": [],
+                    "bundle": "",
+                    "description": ""
+                }
+
+        # agent gear
+        for agent in sorted(agents, key=lambda x: x["displayName"]["ja-JP"]):
+            agent_uuid = agent["uuid"]
+
+            for contract in contracts:
+                if contract["content"]["relationType"] == "Agent" and contract["content"].get("relationUuid")==agent_uuid:
+                    for chapter in contract["content"]["chapters"]:
+                        for level in chapter["levels"]:
+                            if level["reward"]["type"]=="Title":
+                                dictionary[level["reward"]["uuid"]]["relation"].append("エージェントギア")
+                                dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
+                                playertitles = API.remove_list_from_uuid(playertitles, level["reward"]["uuid"])
+                                row["Gear"].append(level["reward"]["uuid"])
+
+        # battlepass
+        act: int = 1
+        episode: int = 1
+        for season_uuid in API.get_act_list():
+            for contract in contracts:
+                if contract["content"]["relationType"] == "Season" and contract["content"].get("relationUuid")==season_uuid:
+
+                    for chapter in contract["content"]["chapters"]:
+                        for level in chapter["levels"]:
+                            if level["reward"]["type"]=="Title":
+                                dictionary[level["reward"]["uuid"]]["relation"].append("バトルパス")
+                                dictionary[level["reward"]["uuid"]]["relation"].append(f"Episode {episode}: Act {act}")
+                                dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
+                                playertitles = API.remove_list_from_uuid(playertitles, level["reward"]["uuid"])
+                                row["Battlepass"].append(level["reward"]["uuid"])
+
+                        if chapter["freeRewards"]!=None:
+                            for free_level in chapter["freeRewards"]:
+                                if free_level["type"]=="Title":
+                                    dictionary[free_level["uuid"]]["relation"].append("バトルパス")
+                                    dictionary[free_level["uuid"]]["relation"].append(f"Episode {episode}: Act {act}")
+                                    dictionary[free_level["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
+                                    dictionary[free_level["uuid"]]["description"] = "無料報酬"
+                                    playertitles = API.remove_list_from_uuid(playertitles, free_level["uuid"])
+                                    row["Battlepass"].append(free_level["uuid"])
+            
+            if act==3:
+                act = 1
+                episode = episode + 1
+            else:
+                act = act+1
+        
+        # eventpass
+        for eventpass_uuid in API.get_eventpass_list():
+            for contract in contracts:
+                if contract["uuid"] == eventpass_uuid:
+                    for chapter in contract["content"]["chapters"]:
+                        for level in chapter["levels"]:
+                            if level["reward"]["type"]=="Title":
+                                dictionary[level["reward"]["uuid"]]["relation"].append("イベントパス")
+                                dictionary[level["reward"]["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
+                                playertitles = API.remove_list_from_uuid(playertitles, level["reward"]["uuid"])
+                                row["Eventpass"].append(level["reward"]["uuid"])
+
+                        if chapter["freeRewards"]!=None:
+                            for free_level in chapter["freeRewards"]:
+                                if free_level["type"]=="Title":
+                                    dictionary[free_level["uuid"]]["relation"].append("イベントパス")
+                                    dictionary[free_level["uuid"]]["bundle"] = contract["displayName"]["ja-JP"]
+                                    dictionary[free_level["uuid"]]["description"] = "無料報酬"
+                                    playertitles = API.remove_list_from_uuid(playertitles, free_level["uuid"])
+                                    row["Eventpass"].append(free_level["uuid"])
+        
+        # bundle
+        addition = {
+            "bf987f36-4a33-45e4-3c49-1ab9a2502607": [{"name": "Champion Title", "uuid": "58e5f5db-4b18-cf8a-afa2-b49574b34456"}], #champion
+            "2270b116-4255-8a14-4486-db9de4979b89": [{"name": "Jinx Title", "uuid": "8b426759-4e32-0c61-51cc-289dc0a33073"}], #jinx
+            "7b6b00f0-4fb9-7395-067d-44bcb4e20d9a": [
+                {"name": "Proud Title", "uuid": "c70f542b-4880-c65f-485e-ec8ffd055243", "description": "特定のコードを入力で入手（2021年）・2022年以降はスキンセットで入手可能<ref name=\"2021 Pride\">{{Cite|url=https://playvalorant.com/ja-jp/news/announcements/show-your-pride-in-valorant/|title=VALORANTでプライドを示そう|website=VALORANT|author=JEFF LANDA|date=2021-06-04}}</ref>"},
+                {"name": "Ally Title", "uuid": "f3bf3c15-4e3b-6e58-64a3-8f9995f39370", "description": "特定のコードを入力で入手（2021年）・2022年以降はスキンセットで入手可能<ref name=\"2021 Pride\">{{Cite|url=https://playvalorant.com/ja-jp/news/announcements/show-your-pride-in-valorant/|title=VALORANTでプライドを示そう|website=VALORANT|author=JEFF LANDA|date=2021-06-04}}</ref>"},
+                {"name": "Proud and Fierce", "uuid": "4ef6afa5-41de-2d89-2bec-adb0feeecfad"}
+            ],
+            "3bd7465d-4257-8583-c563-188ae47cc7c6": [
+                {"name": "Fire-Born Title", "uuid": "47aca56d-49bc-d79f-ba3f-3389899c74ed"},
+                {"name": "Flex Title", "uuid": "e68c6e48-4c1e-5144-2ad8-59a32f3ca499"}
+            ]
+        }
+        for uuid,values in addition.items():
+            if not uuid in bundles:
+                b = API.bundle_by_uuid(uuid)
+                b["titles"] = values
+                bundles.append(b)
+
+        for bundle in bundles:
+            for bundle_playertitle in bundle.get("titles", []):
+                for d in playertitles:
+                    if bundle_playertitle["uuid"]==d["uuid"]:
+                        dictionary[d["uuid"]]["relation"].append("スキンセット")
+                        dictionary[d["uuid"]]["bundle"] = API.get_bundle_name(bundle["uuid"])
+                        print(bundle_playertitle)
+                        if bundle_playertitle.get("description")!=None:
+                            dictionary[d["uuid"]]["description"] = bundle_playertitle["description"]
+                        playertitles = API.remove_list_from_uuid(playertitles, d["uuid"])
+                        row["Bundle"].append(d["uuid"])
+
+        # prime gaming drops
+        for d in API.get_prime_gaming_reward():
+            if d["type"]=="playertitles":
+                dictionary[d["uuid"]]["relation"].append("Prime Gaming")
+                dictionary[d["uuid"]]["description"] = d["date"]
+                playertitles = API.remove_list_from_uuid(playertitles, d["uuid"])
+                row["Misc"].append(d["uuid"])
+
+        # premier
+        premier = [
+            # beta
+            {
+                "uuid": "302f332d-4a9a-1f2c-9331-779b338fdcc7",
+                "description": "[[Premier]]（オープンベータ）に1試合以上参加する"
+            },
+            {
+                "uuid": "c3ea6ac6-4dad-98d4-99a3-f7813edbc431",
+                "description": "[[Premier]]（オープンベータ）で優勝する"
+            },
+
+            #ignition
+            {
+                "uuid": "c8be8fda-46a8-9843-87bc-ecbf9672c227",
+                "description": "[[Premier]]（イグニッションステージ）で優勝する"
+            },
+
+            # release
+            {
+                "uuid": "2fbbc891-44cd-b604-e35a-f9ae5436ab76",
+                "description": "[[Premier]]（リリースステージ）のオープンディビジョンで優勝する"
+            },
+            {
+                "uuid": "58a13ac0-4329-ea83-1235-16905766475d",
+                "description": "[[Premier]]（リリースステージ）のインターミディエイトディビジョンで優勝する"
+            },
+            {
+                "uuid": "580557bc-43da-8548-741a-34a0da3785bd",
+                "description": "[[Premier]]（リリースステージ）のアドバンスドディビジョンで優勝する"
+            },
+            {
+                "uuid": "a235f017-4225-70fa-e5fe-9ca460ce1053",
+                "description": "[[Premier]]（リリースステージ）のエリートディビジョンで優勝する"
+            },
+            {
+                "uuid": "cb5cce68-434b-7022-e18b-56bb5257b4f8",
+                "description": "[[Premier]]（リリースステージ）のコンテンダーディビジョンで優勝する"
+            },
+
+            # ep7act3
+            {
+                "uuid": "c2713143-4579-f890-c512-d2ab8caa27be",
+                "description": "[[Premier]]（{{Act|7|3}}）のオープンディビジョンで優勝する"
+            },
+            {
+                "uuid": "6c468c03-434f-c305-b947-4e900102a4e2",
+                "description": "[[Premier]]（{{Act|7|3}}）のインターミディエイトディビジョンで優勝する"
+            },
+            {
+                "uuid": "b2446a1e-4e07-b483-662e-4db0ddf23535",
+                "description": "[[Premier]]（{{Act|7|3}}）のアドバンスドディビジョンで優勝する"
+            },
+            {
+                "uuid": "f19a9088-49d0-2a25-4256-04b9b16762ba",
+                "description": "[[Premier]]（{{Act|7|3}}）のエリートディビジョンで優勝する"
+            },
+            {
+                "uuid": "b8b1c163-4902-719f-cbdc-a09b2ed3a4bc",
+                "description": "[[Premier]]（{{Act|7|3}}）のコンテンダーディビジョンで優勝する"
+            },
+        ]
+        for d in premier:
+            dictionary[d["uuid"]]["relation"].append("Premier")
+            dictionary[d["uuid"]]["description"] = d["description"]
+            playertitles = API.remove_list_from_uuid(playertitles, d["uuid"])
+            row["Misc"].append(d["uuid"])
+
+        # event winner
+        winner = [
+            {
+                "uuid": "f0751060-4d86-39e8-b881-469f52058b3f", #VCT Regional Masters
+                "description": "[[VCT 2021 Stage 1: Masters]]に優勝（[[Acend]]・[[Australs]]・[[Crazy Raccoon]]・[[FUT Esports]]・[[Gambit Esports]]・[[LDM Esports]]・[[Sentinels]]・[[Team Vikings]]・[[Vision Strikers]]・[[X10 Esports]]）"
+            },
+            {
+                "uuid": "cd19dad9-4975-7e7d-c511-c6a851589c15", #VCT Masters Reykjavik
+                "description": "[[VCT 2021 Stage 2: Masters Reykjavík]]に優勝（[[Sentinels]]）"
+            },
+            {
+                "uuid": "00031857-43a9-9545-4e05-58ad0a62b79d", #VCT Masters Berlin
+                "description": "[[VCT 2021 Stage 3: Masters Berlin]]に優勝（[[Gambit Esports]]）"
+            },
+            {
+                "uuid": "1ba98f24-4989-8778-f8a6-b7af353a1625", #2021 VCT Champion
+                "description": "[[VALORANT Champions 2021]]に優勝（[[Acend]]）"
+            },
+            {
+                "uuid": "d9c1a80f-4531-8c05-9841-4aafd417df8c", #VCT Masters Reykjavik
+                "description": "[[VCT 2022 Stage 1: Masters Reykjavík]]に優勝（[[OpTic Gaming]]）"
+            },
+            {
+                "uuid": "75aaadc3-427a-e194-e8d0-fd8b76b4540f", #VCT Masters Copenhagen
+                "description": "[[VCT 2022 Stage 2: Masters Copenhagen]]に優勝（[[FunPlus Phoenix]]）"
+            },
+            {
+                "uuid": "a6d9e243-4046-b025-358e-0087b4b7fcf3", #2022 VCT Champion
+                "description": "[[VALORANT Champions 2022]]に優勝（[[LOUD]]）"
+            },
+            {
+                "uuid": "2c4634dd-40bd-052e-bf3c-92a7aca4f084", #2022 Game Changers
+                "description": "[[VCT 2022: Game Changers Championship]]に優勝（[[G2 Gozen]]）"
+            },
+            {
+                "uuid": "ce6f4f24-402c-d24d-c28c-4db1aa89dc9b", #VCT LOCK//IN
+                "description": "[[VCT 2023: LOCK//IN São Paulo]]に優勝（[[Fnatic]]）"
+            },
+            {
+                "uuid": "cc33f13b-4b66-56da-f80a-e9be7271b163", #VCT Masters Tokyo
+                "description": "[[VCT 2023: Masters Tokyo]]に優勝（[[Fnatic]]）"
+            },
+            {
+                "uuid": "05f48085-4f2a-5726-cf11-dc958e154675", #2023 VCT Champion
+                "description": "[[VCT 2023: Champions Los Angeles]]に優勝（[[Evil Geniuses]]）"
+            },
+            {
+                "uuid": "a5d0a0db-47cf-d1c4-c441-2db1688457c8", #2023 Game Changers
+                "description": "[[VCT 2023: Game Changers Championship]]に優勝（[[Shopify Rebellion]]）"
+            },
+            
+        ]
+        for d in winner:
+            dictionary[d["uuid"]]["relation"].append("大会優勝報酬")
+            dictionary[d["uuid"]]["description"] = d["description"]
+            playertitles = API.remove_list_from_uuid(playertitles, d["uuid"])
+            row["Misc"].append(d["uuid"])
+
+        # misc
+        misc = [
+            {
+                "uuid": "f802662f-7a82-43d9-a626-335d65df08c5", #pioneer
+                "description": "特定のコードを入力で入手（ベトナムでのリリース記念）<ref>{{Cite|url=https://twitter.com/VALORANTjp/status/1379250161008828425|title=本日、ついにVALORANTがベトナムで正式リリースを迎えました。また全プレイヤーを対象に、この日を記念した特別なゲーム内タイトル、「パイオニア」をご用意しています。|website=X|author=@VALORANTjp|date=2021-04-06}}</ref>"
+            },
+            {
+                "uuid": "6966d46b-4fd1-3287-fd00-a790c9e7a3d8", #fire
+                "description": "[[VALORANT Champions 2022]]の視聴報酬（2022年8月31日～9月13日）<ref>{{Cite|url=https://valorantesports.com/news/watch-play-and-earn-during-champions-2022/ja-jp|title=CHAMPIONS 2022期間中に試合を観戦＆プレイして、アイテムを獲得しよう|website=VALORANT Esports|quote=Champions期間中、下記の指定時間にDropsが有効なチャンネルでVALORANTの試合を観戦すれば、報酬を獲得できます。|date=2022-08-19}}</ref>"
+            },
+            {
+                "uuid": "a7d5ae34-4907-072c-13f9-67af86ec737c", #game changer
+                "description": "[[Game Changers 2022 Championship]]の視聴報酬（2022年11月15日～20日）<ref>{{Cite|url=https://valorantesports.com/news/valorant-game-changers-championship-everything-you-need-to-know/ja-jp|title=VALORANT GAME CHANGERS CHAMPIONSHIP ：知っておくべきすべて|quote=日本時間11月15日～20日に試合のライブ配信を視聴すると「Game Changer タイトル」を獲得可能。|website=VALORANT Esports|author=JEN NEALE|date=2022-11-08}}</ref>"
+            },
+            {
+                "uuid": "d11e42f8-45e9-7d71-720b-8c9c54c3b808", #vct game changer
+                "description": "Game Changersに参加した選手やその他の関係者に与えられる"
+            },
+            {
+                "uuid": "08ac32fb-450a-34b8-4aef-d88e50ebd3cb", #clutch
+                "description": "[[Red Bull Home Ground]]（2022年12月10日）・[[Red Bull Campus Clutch 2022]]の決勝戦（2022年12月15日）の視聴報酬"
+            },
+            {
+                "uuid": "39a0f753-4a86-9a32-5e1d-7687b13f6e7e", #one 2022
+                "description": "[[Riot Games ONE 2022]]の来場者特典<ref>{{Cite|url=https://twitter.com/RiotGamesJapan/status/1595258348101931008|title=🎁来場者特典・全員 プレイヤーカード「VERSUS // ヨル + フェニックス」 ONE限定タイトル「ONE // 2022」・抽選（一日1,000名様） Riot Games ONE限定VALORANT オリジナルキーリング|website=Twitter|author=@RiotGamesJapan|date=2022-11-23}}</ref>"
+            },
+            {
+                "uuid": "dd9b86b1-4661-1c98-65ac-c09b70a88e74", #locked in
+                "description": "[[VCT 2023: LOCK//IN São Paulo]]の視聴報酬（2023年2月14日～3月4日）<ref>{{Cite|url=https://valorantesports.com/news/watch-vct-lock-in-earn-drops|title=VCT23 LOCK//INを観戦してDROPSを獲得しよう|quote=2月14日～3月4日に試合をライブ配信で観戦すると獲得できます|website=VALORANT Esports|date=2023-02-08}}</ref>"
+            },
+            {
+                "uuid": "af85e868-4c20-2e15-7b2e-51b6721ed93e", #unpredictable
+                "description": "[[VCT 2023: Masters Tokyo]]の視聴報酬（2023年6月11日～6月25日）<ref>{{Cite|url=https://valorantesports.com/news/watch-vct-masters-earn-drops|title=VCT MASTERSを観戦してDROPSを獲得しよう|date=2023-06-08|author=ANTON “JOKRCANTSPELL” FERRARO|website=VALORANT Esports}}</ref>"
+            },
+            {
+                "uuid": "ede4ce31-433f-edff-8bf2-a0b7a99e2193", #louder
+                "description": "[[VCT 2023: Game Changers Championship]]の決勝戦（2023年11月29日～12月3日）の視聴報酬<ref>{{Cite|url=https://valorantesports.com/news/watch-and-earn-during-game-changers-championship-2023/|title=GAME CHANGERS CHAMPIONSHIP 2023を観戦して報酬を獲得|website=VALORANT Esports|author=Anton “JokrCantSpell” Ferraro|date=2023-11-28}}</ref>"
+            },
+            {
+                "uuid": "e8c04a61-49a8-8d0a-501c-13b26f20110a", #lowrider
+                "description": "[[VCT 2023: Champions Los Angeles]]の視聴報酬（8月6日～8月23日）<ref>{{Cite|url=https://valorantesports.com/news/watch-play-and-earn-during-champions-2023/|title=CHAMPIONS 2023期間中に試合を観戦＆プレイして、アイテムを獲得しよう|date=2023-07-29|author=ANTON “JOKRCANTSPELL” FERRARO|website=VALORANT Esports}}</ref>"
+            },
+            
+
+        ]
+        for d in misc:
+            dictionary[d["uuid"]]["relation"].append("その他")
+            dictionary[d["uuid"]]["description"] = d["description"]
+            playertitles = API.remove_list_from_uuid(playertitles, d["uuid"])
+            row["Misc"].append(d["uuid"])
+        
+        
+        # unused
+        for d in playertitles:
+            if d["uuid"]!="d13e579c-435e-44d4-cec2-6eae5a3c5ed4":
+                dictionary[d["uuid"]]["relation"].append("その他")
+                dictionary[d["uuid"]]["description"] = "未使用"
+                row["Misc"].append(d["uuid"])
+
+        return dictionary, row

@@ -266,6 +266,7 @@
                 "toggle_video_off": "ビデオをダウンロードしない (アップロードは行いません)",
                 "warn_notfound": "画像が見つかりませんでした。",
                 "wiki_description": "[[Category:{weapon}のスキン]][[Category:{bundle}]]",
+                "wiki_description_swatch": "[[Category:ヴァリアント]][[Category:{bundle}]]",
                 "wiki_description_video": "[[Category:{bundle}]][[Category:スキンのプレビュー]]",
                 "progress": "{count} / {max} ({weapon}: {weapon_count} / {weapon_max})"
             },
@@ -281,6 +282,13 @@
                     "levelNumberAppearance": "[[Category:レベルボーダー]]",
                     "smallPlayerCardAppearance": "[[Category:レベルボーダー]]"
                 }
+            },
+            "playertitle": {
+                "title": "プレイヤータイトル",
+                "description": "プレイヤータイトルのデータを更新します。",
+                "begin": "プレイヤータイトルの更新確認を開始しています",
+                "failed": "プレイヤータイトルの更新確認に失敗しました。",
+                "success": "プレイヤータイトルの更新確認に成功しました。"
             }
         },
         "data": {
@@ -319,6 +327,18 @@
                 "progress": "{current} / {max}",
                 "selected": "{count} 件のファイルを選択中",
                 "reason": "理由",
+                "page": "ページ (改行で区切り)"
+            },
+            "purge": {
+                "title": "キャッシュ破棄",
+                "description": "Wikiのページのキャッシュを破棄します。",
+                "toggle_edit_on": "空編集：する",
+                "toggle_edit_off": "空編集：しない",
+                "action": "キャッシュ破棄",
+                "finish": "キャッシュ破棄が完了しました。",
+                "success": "キャッシュ破棄が成功しました。",
+                "failed": "キャッシュ破棄に失敗しました。",
+                "not_found": "キャッシュ破棄に失敗しました。",
                 "page": "ページ (改行で区切り)"
             },
             "contentmodel": {

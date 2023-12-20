@@ -26,6 +26,7 @@ class Update():
         self.agent = Agent(wiki, gui, page)
         self.weapon = Weapon(wiki, gui, page)
         self.levelborder = Levelborder(wiki, gui, page)
+        self.playertitle = Playertitle(wiki, gui, page)
     
     def main(self):
         self.content = ft.Container(self.playercard.main(), expand=True)
@@ -39,7 +40,8 @@ class Update():
                 self.competitivetier.main(),
                 self.agent.main(),
                 self.weapon.main(),
-                self.levelborder.main()
+                self.levelborder.main(),
+                self.playertitle.main()
             ]
 
             try:
@@ -91,6 +93,11 @@ class Update():
                             icon=ft.icons.BOOKMARK_BORDER,
                             selected_icon=ft.icons.BOOKMARK,
                             label=Lang.value("contents.update.levelborder.title"),
+                        ),
+                        ft.NavigationRailDestination(
+                            icon=ft.icons.BOOKMARK_BORDER,
+                            selected_icon=ft.icons.BOOKMARK,
+                            label=Lang.value("contents.update.playertitle.title"),
                         ),
                     ],
                     on_change=on_clicked
@@ -298,22 +305,25 @@ class PlayerCard():
             pass
     
     def cargo_data(self):
-        page = self.wiki.get_wikitext("Data:Playercard") 
         playercards, row = db.Playercard.make_list()
-        addition = ""
 
-        for uuid in row:
-            playercard = playercards[uuid]
-            if re.search("\{\{[P|p]layercard/CargoDec(.*)\|uuid="+playercard["uuid"]+"(.*)\}\}", page)==None:
-                addition += "{{Playercard/CargoDec|uuid="+ playercard["uuid"] + "|name=" + playercard["name"] + "|title=" + playercard["title"] + "|image=" + playercard["image"] + "|icon=" + playercard["icon"] + "|wide=" + playercard["wide"]
+        for key,values in row.items():
+            addition = ""
+            for uuid in values:
+                playercard = playercards[uuid]
+                addition += "{{Playercard/CargoStore|uuid="+ playercard["uuid"] + "|name=" + playercard["name"] + "|localized_name=" + playercard["localized_name"] + "|image=" + playercard["image"] + "|icon=" + playercard["icon"] + "|wide=" + playercard["wide"]
                 if len(playercard["relation"])>0:
                     addition += "|relation=" + ",".join(playercard["relation"])
                 addition += "|bundle=" + playercard["bundle"] + "|description=" + playercard["description"] + "}}\n"
+            addition += "[[Category:メタデータ]]"
+
+            with open(f"output/data/Playercard.{key}.txt", "w", encoding="UTF-8") as f:
+                f.write(addition)
         
-        if len(addition)>0:
-            self.wiki.login()
-            self.wiki.edit_page("Data:Playercard", addition, "append", editonly=False)
-            self.wiki.logout()
+            if self.switch_upload.value:  
+                self.wiki.login()
+                self.wiki.edit_page(f"Data:Playercard/{key}", addition, editonly=False)
+                self.wiki.logout()
     
 class Spray():
     page: ft.Page
@@ -508,20 +518,24 @@ class Spray():
     def cargo_data(self):
         page = self.wiki.get_wikitext("Data:Spray") 
         sprays, row = db.Spray.make_list()
-        addition = ""
 
-        for uuid in row:
-            spray = sprays[uuid]
-            if re.search("\{\{[S|s]pray/CargoDec(.*)\|uuid="+spray["uuid"]+"(.*)\}\}", page)==None:
-                addition += "{{Spray/CargoDec|uuid="+ spray["uuid"] + "|name=" + spray["name"] + "|title=" + spray["title"] + "|image=" + spray["image"] + "|icon=" + spray["icon"]
+        for key,values in row.items():
+            addition = ""
+            for uuid in values:
+                spray = sprays[uuid]
+                addition += "{{Spray/CargoStore|uuid="+ spray["uuid"] + "|name=" + spray["name"] + "|localized_name=" + spray["localized_name"] + "|image=" + spray["image"] + "|icon=" + spray["icon"]
                 if len(spray["relation"])>0:
                     addition += "|relation=" + ",".join(spray["relation"])
                 addition += "|bundle=" + spray["bundle"] + "|description=" + spray["description"] + "}}\n"
+            addition += "[[Category:メタデータ]]"
         
-        if len(addition)>0:
-            self.wiki.login()
-            self.wiki.edit_page("Data:Spray", addition, "append", editonly=False)
-            self.wiki.logout()
+            with open(f"output/data/Spray.{key}.txt", "w", encoding="UTF-8") as f:
+                f.write(addition)
+
+            if self.switch_upload.value:  
+                self.wiki.login()
+                self.wiki.edit_page(f"Data:Spray/{key}", addition, editonly=False)
+                self.wiki.logout()
 
     def update_state(self, str: str):
         self.state.value = str
@@ -712,21 +726,25 @@ class Buddy():
             pass
     
     def cargo_data(self):
-        page = self.wiki.get_wikitext("Data:Buddy") 
         buddies, row = db.Buddy.make_list()
-        addition = ""
-        for uuid in row:
-            buddy = buddies[uuid]
-            if re.search("\{\{[B|b]uddy/CargoDec(.*)\|uuid="+buddy["uuid"]+"(.*)\}\}", page)==None:
-                addition += "{{Buddy/CargoDec|uuid="+ buddy["uuid"] + "|name=" + buddy["name"] + "|title=" + buddy["title"] + "|image=" + buddy["image"]
+
+        for key,values in row.items():
+            addition = ""
+            for uuid in values:
+                buddy = buddies[uuid]
+                addition += "{{Buddy/CargoStore|uuid="+ buddy["uuid"] + "|name=" + buddy["name"] + "|localized_name=" + buddy["localized_name"] + "|image=" + buddy["image"]
                 if len(buddy["relation"])>0:
                     addition += "|relation=" + ",".join(buddy["relation"])
                 addition += "|bundle=" + buddy["bundle"] + "|description=" + buddy["description"] + "}}\n"
-        
-        if len(addition)>0:
-            self.wiki.login()
-            self.wiki.edit_page("Data:Buddy", addition, "append", editonly=False)
-            self.wiki.logout()
+            addition += "[[Category:メタデータ]]"
+
+            with open(f"output/data/Buddy.{key}.txt", "w", encoding="UTF-8") as f:
+                f.write(addition)
+            
+            if self.switch_upload.value:  
+                self.wiki.login()
+                self.wiki.edit_page(f"Data:Buddy/{key}", addition, editonly=False)
+                self.wiki.logout()
 
 class Competitivetier():
     page: ft.Page
@@ -1288,16 +1306,20 @@ class Weapon():
                                         os.remove(f"output/temp/{filename}")
                                 
                                 # swatch
-                                filename = FileName.weapon(chroma, "swatch", skin_name, weapon, skin["contentTierUuid"])
+                                filename = FileName.weapon(chroma, "swatch", skin_name, weapon, skin["themeUuid"])
                                 try:
-                                    if weapon["uuid"]!="2f59173c-4bed-b6c3-2191-dea9b58be9c7": # Except Knife
-                                        title = chroma.get("displayName", {}).get(Lang.value("common.localize"))
-                                        description = Lang.value("contents.update.weapon.wiki_description").format(weapon=weapon_name_locale, bundle=self.get_bundle_name(weapon_name_locale, skin)) + Lang.value(f"contents.update.common.wiki_description")
-                                        icon: str = None
-            
-                                        if chroma.get("swatch")!=None:
-                                            icon = chroma["swatch"]
-                                            update(chroma["uuid"], filename, icon, title, description, False, "swatch")
+                                    title = chroma.get("displayName", {}).get(Lang.value("common.localize"))
+                                    description = Lang.value("contents.update.weapon.wiki_description_swatch").format(bundle=self.get_bundle_name(weapon_name_locale, skin)) + Lang.value(f"contents.update.common.wiki_description")
+                                    icon: str = None
+
+                                    swatch_exception = [
+                                        "34919680-4f00-554b-0c2b-95acca7d0d36", # VALORANT GO! Ghost
+                                        "9103fdf7-4361-5ac5-37ae-7cb51f13f45d", # Raze Gear
+                                        "4725c2c4-45b7-d9ab-ff4f-a79c3b2dd9ec", # Astra Gear
+                                    ]
+                                    if chroma.get("swatch")!=None and (not skin["uuid"] in swatch_exception):
+                                        icon = chroma["swatch"]
+                                        update(chroma["uuid"], filename, icon, title, description, False, "swatch")
 
                                 except Exception as e:
                                     self.lists.append(chroma.get("displayName", {}).get(Lang.value("common.localize")) + " (Swatch)", filename, "error", Lang.value("common.error"), str(e))
@@ -1396,41 +1418,36 @@ class Weapon():
             count += 1
             self.update_state(Lang.value("contents.update.weapon.db").format(num=count, max=len(weapons)))
 
-            page = self.wiki.get_wikitext("Data:Skin/" + weapon["displayName"]["en-US"]) 
             skins, row = db.Weapon_Skin.make_list(weapon)
             addition = ""
 
             for uuid in row:
                 skin = skins[uuid]
-                if True:#re.search("\{\{[S|s]kin/CargoDec(.*)\|uuid="+skin["uuid"]+"(.*)\}\}", page)==None:
-                    vp: str = ""
-                    if skin["vp"]>0:
-                        vp = str(skin["vp"])
+                vp: str = ""
+                if skin["vp"]>0:
+                    vp = str(skin["vp"])
 
-                    addition += "{{Skin/CargoDec|uuid="+ skin["uuid"] + "|name=" + skin["name"] + "|title=" + skin["title"] + "|weapon=" + skin["weapon"] + "|image=" + skin["image"] + "|bundle=" + skin["bundle"] + "|tier=" + skin["tier"] + "|vp=" + vp + "|swatch=" + skin["swatch"] + "|video=" + skin["video"]
-                    if len(skin["level_upgrade"])>0:
-                        addition += "|level_upgrade=" + ",".join(skin["level_upgrade"])
-                    if len(skin["level_image"])>0:
-                        addition += "|level_image=" + ",".join(skin["level_image"])
-                    if len(skin["level_swatch"])>0:
-                        addition += "|level_swatch=" + ",".join(skin["level_swatch"])
-                    if len(skin["level_video"])>0:
-                        addition += "|level_video=" + ",".join(skin["level_video"])
-                    if len(skin["level_description"])>0:
-                        addition += "|level_description=" + ",".join(skin["level_description"])
-                    addition += "}}\n"
-            
-            if len(addition)>0:
-                try:
-                    self.wiki.login()
-                    #self.wiki.edit_page("Data:Skin/" + weapon["displayName"]["en-US"], addition, "append", editonly=False)
-                    self.wiki.edit_page("Data:Skin/" + weapon["displayName"]["en-US"], addition, editonly=False)
-                    self.wiki.logout()
-                except Exception as e:
-                    self.gui.popup_error(Lang.value("contents.update.weapon.failed"), str(e))
+                addition += "{{Skin/CargoStore|uuid="+ skin["uuid"] + "|name=" + skin["name"] + "|localized_name=" + skin["localized_name"] + "|weapon=" + skin["weapon"] + "|image=" + skin["image"] + "|bundle=" + skin["bundle"] + "|tier=" + skin["tier"] + "|vp=" + vp + "|swatch=" + skin["swatch"] + "|video=" + skin["video"]
+                if len(skin["level_upgrade"])>0:
+                    addition += "|level_upgrade=" + ",".join(skin["level_upgrade"])
+                if len(skin["level_image"])>0:
+                    addition += "|level_image=" + ",".join(skin["level_image"])
+                if len(skin["level_swatch"])>0:
+                    addition += "|level_swatch=" + ",".join(skin["level_swatch"])
+                if len(skin["level_video"])>0:
+                    addition += "|level_video=" + ",".join(skin["level_video"])
+                if len(skin["level_description"])>0:
+                    addition += "|level_description=" + ",".join(skin["level_description"])
+                addition += "}}\n"
+            addition += "[[Category:メタデータ]]"
 
-                #with open("output/Skin " + weapon["displayName"]["en-US"] +".txt", "w", encoding="UTF-8") as f:
-                #    f.write(addition)
+            with open(f"output/data/Skin."+weapon["displayName"]["en-US"]+".txt", "w", encoding="UTF-8") as f:
+                f.write(addition)
+
+            if self.switch_upload.value:
+                self.wiki.login()
+                self.wiki.edit_page("Data:Skin/" + weapon["displayName"]["en-US"], addition, editonly=False)
+                self.wiki.logout()
 
     def update_state(self, str: str):
         self.state.value = str
@@ -1499,6 +1516,9 @@ class Levelborder():
                 self.result.clear()
                 self.update_state(Lang.value("contents.update.levelborder.begin"))
                 self.loading.state(True)
+
+                self.update_state(Lang.value("contents.update.levelborder.db"))
+                self.cargo_data()
 
                 os.makedirs("output/temp", exist_ok=True)
                 data = JSON.read("api/levelborders.json")
@@ -1624,3 +1644,138 @@ class Levelborder():
             self.state.update()
         except Exception:
             pass
+    
+    def cargo_data(self):
+        page = self.wiki.get_wikitext("Data:Levelborder") 
+        borders, row = db.Levelborder.make_list()
+        
+        addition = ""
+        for uuid in row:
+            border = borders[uuid]
+            addition += "{{Levelborder/CargoStore|uuid="+ border["uuid"] + "|localized_name=" + border["localized_name"] + "|level=" + str(border["level"]) + "|border=" + border["border"] + "|frame=" + border["frame"] + "}}\n"
+        addition += "[[Category:メタデータ]]"
+
+        with open("output/data/Levelborder.txt", "w", encoding="UTF-8") as f:
+            f.write(addition)
+
+        if self.switch_upload.value:  
+            self.wiki.login()
+            self.wiki.edit_page("Data:Levelborder", addition, editonly=False)
+            self.wiki.logout()
+    
+class Playertitle():
+    page: ft.Page
+    loading: Gui.ProgressRing
+    state: ft.Text
+    switch_upload: ft.Switch
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+        
+        self.loading = self.gui.ProgressRing(self.page)
+        self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
+        self.result = self.gui.Result(self.page)
+        self.switch_upload = ft.Switch(label=Lang.value("contents.update.common.toggle_upload_on"), value=True)
+
+        def on_changed_upload(e):
+            if self.switch_upload.value:
+                self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_on")
+            else:
+                self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_off")
+
+            try:
+                self.switch_upload.update()
+            except Exception as e:
+                pass
+            
+        self.switch_upload.on_change = on_changed_upload
+              
+    def main(self):
+
+        def on_clicked(e):
+            result = {"skipped": 0, "success": 0, "warn": 0, "error": 0}
+            checked = JSON.read("output/playertitles.json")
+            self.cargo_data()
+            
+            try:
+                self.result.clear()
+                self.update_state(Lang.value("contents.update.playertitle.begin"))
+                self.loading.state(True)
+
+                self.update_state(Lang.value("contents.update.playertitle.db"))
+
+                self.result.success(Lang.value("contents.update.playertitle.success"))
+                self.gui.popup_success(Lang.value("contents.update.playertitle.success"))
+
+            except Exception as e:
+                self.result.error(Lang.value("contents.update.playertitle.failed"))
+                self.gui.popup_error(Lang.value("contents.update.playertitle.failed"), str(e))
+
+            finally:
+                self.loading.state(False)
+                self.update_state("")
+    
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.update.playertitle.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.update.playertitle.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+
+                ft.Container(
+                    ft.Column([
+                        self.switch_upload,
+                    ])
+                ),
+                ft.Container(height=30),
+                
+                ft.Row(
+                    controls=[
+                        ft.Container(
+                            content=ft.FilledTonalButton(
+                                text=Lang.value("contents.update.common.button"),
+                                icon=ft.icons.DOWNLOAD,
+                                on_click=on_clicked
+                            ),
+                            padding=10
+                        ),
+                        self.loading.main(),
+                        self.state
+                    ],
+                ),
+
+                self.result.main()
+            ],
+            spacing=0
+        )
+
+    def update_state(self, str: str):
+        self.state.value = str
+        try:
+            self.state.update()
+        except Exception:
+            pass
+    
+    def cargo_data(self):
+        titles, row = db.Playertitle.make_list()
+        
+        for key,values in row.items():
+            addition = ""
+            for uuid in values:
+                title = titles[uuid]
+                addition += "{{Playertitle/CargoStore|uuid="+ title["uuid"] + "|name=" + title["name"] + "|localized_name=" + title["localized_name"] + "|title=" + title["title"]
+                if len(title["relation"])>0:
+                    addition += "|relation=" + ",".join(title["relation"])
+                addition += "|bundle=" + title["bundle"] + "|description=" + title["description"] + "}}\n"
+            addition += "[[Category:メタデータ]]"
+
+            with open(f"output/data/Playertitle.{key}.txt", "w", encoding="UTF-8") as f:
+                f.write(addition)
+            
+            if self.switch_upload.value:  
+                self.wiki.login()
+                self.wiki.edit_page(f"Data:Playertitle/{key}", addition, editonly=False)
+                self.wiki.logout()

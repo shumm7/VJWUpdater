@@ -144,6 +144,22 @@ class Wiki():
         page = page.replace(" ", "_")
         return requests.get(urllib.parse.urljoin(self.url, f"w/index.php?title={page}&action=raw")).text
     
+    def purge(self, pages: list[str]):
+        PURGE_PARAMS = {
+            'action': 'purge',
+            'titles': pages.join("|"),
+            'generator': 'allpages',
+            'redirects': True,
+            'formatversion': 2,
+            'format': 'json'
+        }
+
+        ret = self.session.post(self.api, data=PURGE_PARAMS)
+        data = ret.json()
+
+        if data.get("error"):
+            raise Exception(data.get("error", {}).get("info", f"Failed to purge the page: "+pages))
+
 
     def delete_from_pageid(self, pageid: str, reason: str):
         PAGE_DELETE_PARAMS = {
@@ -464,16 +480,19 @@ class FileName():
             pass
         name: str = WikiString.wiki_format(name)
 
-        if name=="Standard":
+        if name=="Standard" or theme_id=="5a629df4-4765-0214-bd40-fbb96542941f":
             name = skin_name
         if name=="Random Favorite Skin":
             name = f"Random Favorite {weapon_name}"
 
         if tp=="icon":
-            if suffix!=None:
-                return f"{skin_name} {suffix}.png"
+            if theme_id=="5a629df4-4765-0214-bd40-fbb96542941f":
+                return weapon_name + ".png" #standard 
             else:
-                return f"{name}.png"
+                if suffix!=None:
+                    return f"{skin_name} {suffix}.png"
+                else:
+                    return f"{name}.png"
         elif tp=="video":
             if suffix!=None:
                 return f"{skin_name} {suffix}.mp4"
@@ -568,7 +587,7 @@ class FileName():
                 return API.skin_by_uuid("41fce834-4c76-a0f4-2cf8-cca3ae879eab")["displayName"][lang].replace(API.weapon_by_uuid("29a0cfab-485b-f5d5-779a-b59f85e204a8")["displayName"][lang], "").strip()
             elif uuid=="f8ca8370-4cdb-67e6-8862-9684ac410148": # サージ
                 return API.skin_by_uuid("6cc70eae-4297-91d5-adb9-efa48004da77")["displayName"][lang].replace(API.weapon_by_uuid("29a0cfab-485b-f5d5-779a-b59f85e204a8")["displayName"][lang], "").strip()
-            elif uuid=="950c5b23-4a07-d8e9-9622-46b04592f43": # ソングスティール
+            elif uuid=="950c5b23-4a07-d8e9-9622-46b04592f430": # ソングスティール
                 return API.skin_by_uuid("10354287-40e9-4087-85c5-aea7289d31f2")["displayName"][lang].replace(API.weapon_by_uuid("29a0cfab-485b-f5d5-779a-b59f85e204a8")["displayName"][lang], "").strip()
             elif uuid=="e8223acc-4d50-f83e-0029-7d9fd9bf9bc1": # クロムデック
                 return API.skin_by_uuid("da41a901-493c-80f7-955b-dfa0c69629fd")["displayName"][lang].replace(API.weapon_by_uuid("29a0cfab-485b-f5d5-779a-b59f85e204a8")["displayName"][lang], "").strip()
