@@ -995,7 +995,6 @@ class Playertitle():
                     if bundle_playertitle["uuid"]==d["uuid"]:
                         dictionary[d["uuid"]]["relation"].append("スキンセット")
                         dictionary[d["uuid"]]["bundle"] = API.get_bundle_name(bundle["uuid"])
-                        print(bundle_playertitle)
                         if bundle_playertitle.get("description")!=None:
                             dictionary[d["uuid"]]["description"] = bundle_playertitle["description"]
                         playertitles = API.remove_list_from_uuid(playertitles, d["uuid"])
