@@ -11,6 +11,7 @@ class Config:
             "id": "",
             "password": ""
         },
+        "youtube_api": "",
         "webdriver": "chrome"
     }
 

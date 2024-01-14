@@ -27,6 +27,7 @@ class Update():
         self.weapon = Weapon(wiki, gui, page)
         self.levelborder = Levelborder(wiki, gui, page)
         self.playertitle = Playertitle(wiki, gui, page)
+        self.contract = Contract(wiki, gui, page)
     
     def main(self):
         self.content = ft.Container(self.playercard.main(), expand=True)
@@ -41,7 +42,8 @@ class Update():
                 self.agent.main(),
                 self.weapon.main(),
                 self.levelborder.main(),
-                self.playertitle.main()
+                self.playertitle.main(),
+                self.contract.main()
             ]
 
             try:
@@ -98,6 +100,11 @@ class Update():
                             icon=ft.icons.BOOKMARK_BORDER,
                             selected_icon=ft.icons.BOOKMARK,
                             label=Lang.value("contents.update.playertitle.title"),
+                        ),
+                        ft.NavigationRailDestination(
+                            icon=ft.icons.BOOKMARK_BORDER,
+                            selected_icon=ft.icons.BOOKMARK,
+                            label=Lang.value("contents.update.contract.title"),
                         ),
                     ],
                     on_change=on_clicked
@@ -803,6 +810,8 @@ class Competitivetier():
                 self.update_state(Lang.value("contents.update.competitivetier.begin"))
                 self.loading.state(True)
 
+                self.cargo_data()
+
                 os.makedirs("output/temp", exist_ok=True)
                 data = JSON.read("api/competitivetiers.json")
 
@@ -928,6 +937,40 @@ class Competitivetier():
             self.state.update()
         except Exception:
             pass
+    
+    def cargo_data(self):
+        seasons = db.Season.make_list()
+        
+        addition = ""
+        for season in seasons:
+            addition += "{{Season/CargoStore|uuid="+ season["uuid"] + "|name=" + season["name"] + "|episode=" + season["episode"] + "|act=" + season["act"] + "|parent=" + season["parent"] + "|page=" + season["page"] + "|start=" + season["start"] + "|end=" + season["end"] + "}}\n"
+        addition += "[[Category:メタデータ]]"
+
+        with open("output/data/Season.txt", "w", encoding="UTF-8") as f:
+            f.write(addition)
+
+        if self.switch_upload.value:  
+            self.wiki.login()
+            self.wiki.edit_page("Data:Season", addition, editonly=False)
+            self.wiki.logout()
+        
+
+        tiers = db.CompetitiveTier.make_list()
+        
+        addition = ""
+        for tier in tiers:
+            addition += "{{CompetitiveTier/CargoStore|tier=" + str(tier["tier"]) + "|name=" + tier["name"] + "|localized_name=" + tier["localized_name"] + "|division_name=" + tier["division_name"] + "|localized_division_name=" + tier["localized_division_name"] + "|image=" + tier["image"] + "|triangle_down=" + tier["triangle_down"] + "|triangle_up=" + tier["triangle_up"] + "}}\n"
+        addition += "[[Category:メタデータ]]"
+
+        with open("output/data/CompetitiveTier.txt", "w", encoding="UTF-8") as f:
+            f.write(addition)
+
+        if self.switch_upload.value:  
+            self.wiki.login()
+            self.wiki.edit_page("Data:CompetitiveTier", addition, editonly=False)
+            self.wiki.logout()
+        
+        
 
 class Agent():
     page: ft.Page
@@ -1208,7 +1251,6 @@ class Weapon():
                 self.update_state(Lang.value("contents.update.weapon.begin"))
                 self.loading.state(True)
 
-                self.update_state(Lang.value("contents.update.weapon.db"))
                 self.cargo_data()
 
                 os.makedirs("output/temp", exist_ok=True)
@@ -1646,7 +1688,6 @@ class Levelborder():
             pass
     
     def cargo_data(self):
-        page = self.wiki.get_wikitext("Data:Levelborder") 
         borders, row = db.Levelborder.make_list()
         
         addition = ""
@@ -1695,8 +1736,6 @@ class Playertitle():
     def main(self):
 
         def on_clicked(e):
-            result = {"skipped": 0, "success": 0, "warn": 0, "error": 0}
-            checked = JSON.read("output/playertitles.json")
             self.cargo_data()
             
             try:
@@ -1779,3 +1818,149 @@ class Playertitle():
                 self.wiki.login()
                 self.wiki.edit_page(f"Data:Playertitle/{key}", addition, editonly=False)
                 self.wiki.logout()
+
+class Contract():
+    page: ft.Page
+    loading: Gui.ProgressRing
+    state: ft.Text
+    switch_upload: ft.Switch
+
+    def __init__(self, wiki: Wiki, gui: Gui, page: ft.Page):
+        self.wiki = wiki
+        self.page = page
+        self.gui = gui
+        
+        self.loading = self.gui.ProgressRing(self.page)
+        self.state = ft.Text(style=ft.TextThemeStyle.BODY_MEDIUM)
+        self.result = self.gui.Result(self.page)
+        self.switch_upload = ft.Switch(label=Lang.value("contents.update.common.toggle_upload_on"), value=True)
+
+        def on_changed_upload(e):
+            if self.switch_upload.value:
+                self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_on")
+            else:
+                self.switch_upload.label = Lang.value("contents.update.common.toggle_upload_off")
+
+            try:
+                self.switch_upload.update()
+            except Exception as e:
+                pass
+            
+        self.switch_upload.on_change = on_changed_upload
+              
+    def main(self):
+
+        def on_clicked(e):
+            
+            try:
+                self.result.clear()
+                self.update_state(Lang.value("contents.update.contract.begin"))
+                self.loading.state(True)
+                
+                self.cargo_data()
+
+                self.result.success(Lang.value("contents.update.contract.success"))
+                self.gui.popup_success(Lang.value("contents.update.contract.success"))
+
+            except Exception as e:
+                self.result.error(Lang.value("contents.update.contract.failed"))
+                self.gui.popup_error(Lang.value("contents.update.contract.failed"), str(e))
+
+            finally:
+                self.loading.state(False)
+                self.update_state("")
+    
+        return ft.Column(
+            [
+                ft.ListTile(
+                    title=ft.Text(Lang.value("contents.update.contract.title"), style=ft.TextThemeStyle.HEADLINE_LARGE, weight=ft.FontWeight.BOLD),
+                    subtitle=ft.Text(Lang.value("contents.update.contract.description"), style=ft.TextThemeStyle.BODY_SMALL)
+                ),
+                ft.Divider(),
+
+                ft.Container(
+                    ft.Column([
+                        self.switch_upload,
+                    ])
+                ),
+                ft.Container(height=30),
+                
+                ft.Row(
+                    controls=[
+                        ft.Container(
+                            content=ft.FilledTonalButton(
+                                text=Lang.value("contents.update.common.button"),
+                                icon=ft.icons.DOWNLOAD,
+                                on_click=on_clicked
+                            ),
+                            padding=10
+                        ),
+                        self.loading.main(),
+                        self.state
+                    ],
+                ),
+
+                self.result.main()
+            ],
+            spacing=0
+        )
+
+    def update_state(self, str: str):
+        self.state.value = str
+        try:
+            self.state.update()
+        except Exception:
+            pass
+    
+    def cargo_data(self):
+        count = 1
+        contracts = JSON.read("api/contracts.json")
+
+        # Contract
+        dbs = db.Contract.make_list_parent(contracts)
+        addition = ""
+        for data in dbs:
+            addition += "{{Contract/CargoStore|name="+ data["name"] + "|localized_name=" + data["localized_name"] + "|uuid=" + data["uuid"] + "|start=" + data["start"] + "|end=" + data["end"] + "|relation=" + data["relation"] + "|relation_type=" + data["relation_type"] + "}}\n"
+        addition += "\n== 子ページ ==\n{{Special:PrefixIndex/Data:Contract/}}\n\n[[Category:メタデータ]]"
+
+        with open(f"output/data/Contract.txt", "w", encoding="UTF-8") as f:
+            f.write(addition)
+        
+        if self.switch_upload.value:  
+            self.wiki.login()
+            self.wiki.edit_page(f"Data:Contract", addition, editonly=False)
+            self.wiki.logout()
+
+        # Contract Item
+        for v in contracts:
+            self.update_state(Lang.value("contents.update.contract.db").format(num=count, max=len(contracts)))
+            dbs = db.Contract.make_list(v)
+            key = v["displayName"]["en-US"]
+            if key=="IGNITION : ACT 1":
+                key = "IGNITION: ACT 1"
+
+            addition = ""
+            for data in dbs:
+                addition += "{{ContractItem/CargoStore|idx="+ data["idx"] + "|name=" + data["name"] + "|type=" + data["type"] + "|tier=" + data["tier"] + "|amount=" + data["amount"]
+                if data["free"]:
+                    addition += "|free=yes"
+                else:
+                    addition += "|free=no"
+                
+                if data["epilogue"]:
+                    addition += "|epilogue=yes"
+                else:
+                    addition += "|epilogue=no"
+                addition += "|xp=" + data["xp"] + "|vp=" + data["vp"] + "|kc=" + data["kc"] + "|contract=" + data["contract"] + "}}\n"
+            addition += "[[Category:メタデータ]]"
+
+            with open(f"output/data/Contract.{WikiString.wiki_format(key)}.txt", "w", encoding="UTF-8") as f:
+                f.write(addition)
+            
+            if self.switch_upload.value:  
+                self.wiki.login()
+                self.wiki.edit_page(f"Data:Contract/{key}", addition, editonly=False)
+                self.wiki.logout()
+            
+            count += 1
+ 

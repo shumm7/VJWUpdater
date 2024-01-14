@@ -131,6 +131,10 @@
             "button": "テスト",
             "tooltip": "ブラウザが起動します",
             "success": "テストに成功しました。"
+        },
+        "youtube_api": {
+            "title": "YouTube API",
+            "key": "API キー"
         }
     },
     "contents": {
@@ -274,6 +278,7 @@
                 "title": "レベルボーダー",
                 "description": "レベルボーダーのデータを更新します。",
                 "begin": "レベルボーダーの更新確認を開始しています",
+                "db": "データベースを作成しています",
                 "failed": "レベルボーダーの更新確認に失敗しました。",
                 "success": "レベルボーダーの更新確認に成功しました。",
                 "result": "アップロード: {success}件 / スキップ: {skipped}件 / 警告: {warn}件 / エラー: {error}件",
@@ -287,8 +292,17 @@
                 "title": "プレイヤータイトル",
                 "description": "プレイヤータイトルのデータを更新します。",
                 "begin": "プレイヤータイトルの更新確認を開始しています",
+                "db": "データベースを作成しています",
                 "failed": "プレイヤータイトルの更新確認に失敗しました。",
                 "success": "プレイヤータイトルの更新確認に成功しました。"
+            },
+            "contract": {
+                "title": "契約書",
+                "description": "契約書のデータを更新します。",
+                "begin": "契約書の更新確認を開始しています",
+                "db": "データベースを作成しています ({num} / {max})",
+                "failed": "契約書の更新確認に失敗しました。",
+                "success": "契約書の更新確認に成功しました。"
             }
         },
         "data": {
@@ -397,17 +411,24 @@
                     "dateformat": "日付フォーマット"
                 }
             },
-            "contracts": {
-                "title": "Contract",
-                "description": "Contract（バトルパステンプレート）を生成します。",
-                "progress": "{count} / {max} ({name})",
-                "toggle_update_off": "Wikiにアップロード: しない",
-                "toggle_update_on": "Wikiにアップロード: する",
-                "action": "テンプレートを生成",
-                "error": "テンプレートの生成に失敗しました。",
-                "error_with_info": "テンプレートの生成に失敗しました：{info}",
-                "template": "テンプレート",
-                "page": "ページ"
+            "video": {
+                "title": "動画アップロード",
+                "description": "Wikiに動画をアップロードします。",
+                "action": "アップロード",
+                "finish": "アップロードが完了しました。",
+                "failed": "アップロードに失敗しました。",
+                "progress": "{current} / {max}",
+                "add_category": "カテゴリを追加",
+                "remove_category": "カテゴリを削除",
+                "add_relation": "関連タグを追加",
+                "remove_relation": "関連タグを削除",
+                "file_url": "URL（改行区切り）",
+                "file_title": "表示タイトル（改行区切り / 空白で省略）",
+                "file_name": "ファイル名（改行区切り / 空白で省略）",
+                "file_relation": "関連タグ",
+                "file_description": "説明",
+                "file_license": "ライセンス",
+                "file_category": "カテゴリ"
             }
         },
         "esports": {

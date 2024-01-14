@@ -1,0 +1,19 @@
+{
+  "error": {
+    "code": "fileexists-no-change",
+    "info": "The upload is an exact duplicate of the current version of [[:ファイル:Ep8Act1 Kickoff Thumbnail.jpg]].",
+    "stasherrors": [
+      {
+        "message": "uploadstash-exception",
+        "params": [
+          "UploadStashBadPathException",
+          "パスが存在しません。"
+        ],
+        "code": "uploadstash-exception",
+        "type": "error"
+      }
+    ],
+    "docref": "See https://valorantjp.wiki/1.40/api.php for API usage. Subscribe to the mediawiki-api-announce mailing list at &lt;https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/&gt; for notice of API deprecations and breaking changes."
+  },
+  "servedby": "mw1"
+}

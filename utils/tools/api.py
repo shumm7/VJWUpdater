@@ -290,6 +290,22 @@ class API:
                 return playertitle
         return None
 
+    def event_by_uuid(uuid: str) -> dict:
+        url = f'https://valorant-api.com/v1/events/{uuid}?language=all'
+
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['data']
+        else:
+            return None
+    
+    def season_by_uuid(uuid: str) -> dict:
+        seasons = JSON.read("api/seasons.json")
+        for season in seasons:
+            if season["uuid"]==uuid:
+                return season
+        return None
+
     def contenttier_by_uuid(uuid: str) -> dict:
         url = f'https://valorant-api.com/v1/contenttiers/{uuid}?language=all'
 
@@ -761,6 +777,11 @@ class API:
                 "type": "sprays",
                 "uuid": "94ccd7e7-4ddc-553e-d9e2-5a8afc1d3a5b",
                 "date": "2023年11月"
+            },
+            {
+                "type": "sprays",
+                "uuid": "fb5a3e47-42dd-c876-bd7d-0197d2b3d009",
+                "date": "2023年12月"
             }
         ]
 

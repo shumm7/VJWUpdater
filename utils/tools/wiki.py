@@ -17,7 +17,6 @@ class Wiki():
     def __init__(self, id: str, password: str, url: str) -> None:
         self.url = url
         self.api = urllib.parse.urljoin(base=url, url="w/api.php")
-        print(self.api)
         self.id = id
         self.password = password
     
@@ -236,6 +235,7 @@ class Wiki():
         file = {'file':(filename, open(file_dir, 'rb'), 'multipart/form-data')}
         ret = self.session.post(self.api, files=file, data=FILE_UPLOAD_PARAMS)
         data = ret.json()
+        JSON.save("test.json", data)
 
         if data.get("error"):
             raise Exception(data.get("error", {}).get("info", f"Failed to upload the file: {filename}"))
@@ -427,6 +427,9 @@ class FileName():
 
         if name==None:
             raise Exception("Failed to get item's name.")
+        tier = data.get("tier", 0)
+        if tier==1 or tier==2:
+            return
         
         name = WikiString.wiki_format(name)
 
@@ -578,7 +581,7 @@ class FileName():
             elif uuid=="2a5c2836-4f75-0a01-089d-eaaf43cc7d14": #レイナのギア
                 return API.contract_by_uuid("4c9b0fcf-57cd-4e84-ae5a-ce89e396242f")["displayName"][lang]
             elif uuid=="def525c9-4151-ab71-5a18-c7bff46d4e46": #オーメンのギア
-                return API.contract_by_uuid("eb35d061-4eed-4d22-81a3-1491ec892429")["displayName"][lang]
+                return "オーメンのギア" #API.contract_by_uuid("eb35d061-4eed-4d22-81a3-1491ec892429")["displayName"][lang]
             elif uuid=="897f7222-4eb3-b86c-1093-7d883c36c731": #ジェットのギア
                 return API.contract_by_uuid("c9d1c451-12fc-4601-a97c-8258765fb90d")["displayName"][lang]
             elif uuid=="8d1108da-4333-0b91-3a4a-4596fc5eeeb8": #ヨルのギア
@@ -754,3 +757,19 @@ class FileName():
                 return bundle["displayName"][lang]
             else:
                 return None
+    
+    def season(uuid: str):
+        season = API.season_by_uuid(uuid)
+
+        if season!=None:
+            if season["parentUuid"]==None:
+                if season["uuid"]=="0df5adb9-4dcb-6899-1306-3e9860661dd3":
+                    return "クローズドベータ"
+                else:
+                    episode = int(re.findall("EPISODE (.*)", season["displayName"]["en-US"])[0])
+                    return f"Episode {episode}"
+            else:
+                season_ep = API.season_by_uuid(season["parentUuid"])
+                episode = int(re.findall("EPISODE (.*)", season_ep["displayName"]["en-US"])[0])
+                act = int(re.findall("ACT (.*)", season["displayName"]["en-US"])[0])
+                return f"Episode {episode}/Act {act}"

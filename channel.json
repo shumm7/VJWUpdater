@@ -1,0 +1,49 @@
+{
+  "kind": "youtube#channelListResponse",
+  "etag": "xjnITDp8p_0tqmlbLpanl2YlPzA",
+  "pageInfo": {
+    "totalResults": 1,
+    "resultsPerPage": 5
+  },
+  "items": [
+    {
+      "kind": "youtube#channel",
+      "etag": "EItQz2qrSVqZZe5bDFgRv8gmEew",
+      "id": "UC8CX0LD98EDXl4UYX1MDCXg",
+      "snippet": {
+        "title": "VALORANT",
+        "description": "A 5v5 character-based tactical shooter from Riot Games. Available worldwide.\n\nLearn more about VALORANT at PlayVALORANT.com and stay connected with us on social for the latest updates.\n\nYou’re subscribed to this YouTube channel, right: https://www.youtube.com/@Valorant",
+        "customUrl": "@valorant",
+        "publishedAt": "2020-01-31T04:50:39.775767Z",
+        "thumbnails": {
+          "default": {
+            "url": "https://yt3.ggpht.com/r2eATZnsazdXDR-KTko34lZZYz5nXJXOe9S_fLx5xev3HhnftW_FAiqXf5PV7q24omsd2wQ7=s88-c-k-c0x00ffffff-no-rj",
+            "width": 88,
+            "height": 88
+          },
+          "medium": {
+            "url": "https://yt3.ggpht.com/r2eATZnsazdXDR-KTko34lZZYz5nXJXOe9S_fLx5xev3HhnftW_FAiqXf5PV7q24omsd2wQ7=s240-c-k-c0x00ffffff-no-rj",
+            "width": 240,
+            "height": 240
+          },
+          "high": {
+            "url": "https://yt3.ggpht.com/r2eATZnsazdXDR-KTko34lZZYz5nXJXOe9S_fLx5xev3HhnftW_FAiqXf5PV7q24omsd2wQ7=s800-c-k-c0x00ffffff-no-rj",
+            "width": 800,
+            "height": 800
+          }
+        },
+        "localized": {
+          "title": "VALORANT",
+          "description": "A 5v5 character-based tactical shooter from Riot Games. Available worldwide.\n\nLearn more about VALORANT at PlayVALORANT.com and stay connected with us on social for the latest updates.\n\nYou’re subscribed to this YouTube channel, right: https://www.youtube.com/@Valorant"
+        },
+        "country": "US"
+      },
+      "statistics": {
+        "viewCount": "440688045",
+        "subscriberCount": "2260000",
+        "hiddenSubscriberCount": false,
+        "videoCount": "220"
+      }
+    }
+  ]
+}

@@ -229,6 +229,14 @@ class Settings():
         webdriver_radio.on_change = webdriver_changed
         webdriver_button.on_click = webdriver_clicked
 
+        # YouTube API
+        youtube_api_key_field: ft.TextField = ft.TextField(label=Lang.value("settings.youtube_api.key"), value=Config.read_key("youtube_api"), password=True)
+
+        def youtube_api_changed(e):
+            Config.save_key("youtube_api", api_url_field.value)
+        
+        youtube_api_key_field.on_change = youtube_api_changed
+
         # Card
         card = ft.Card(
             content=ft.Container(
@@ -443,6 +451,24 @@ class Settings():
                                     [ft.Container(content=logo_image, width=100, height=100, padding=2)],
                                     alignment=ft.MainAxisAlignment.END
                                 )
+                            ]
+                        ),
+                        ft.Divider(),
+
+                        # YouTube API
+                        ft.Column(
+                            controls=[
+                                ft.Container(
+                                    padding=10,
+                                    content=ft.Row(
+                                        alignment=ft.MainAxisAlignment.START, 
+                                        controls=[
+                                            ft.Icon(name=ft.icons.VIDEO_CALL),
+                                            ft.Text(Lang.value("settings.youtube-api.title"), style=ft.TextThemeStyle.BODY_MEDIUM),
+                                        ]
+                                    ),
+                                ),
+                                youtube_api_key_field
                             ]
                         ),
                         ft.Divider(),

@@ -1,0 +1,128 @@
+{
+  "kind": "youtube#videoListResponse",
+  "etag": "d8AJON9GIPAnQPFdL7-Y7Jo46m4",
+  "items": [
+    {
+      "kind": "youtube#video",
+      "etag": "Yvy6TEhZXGRlBGIVNolKrQYsT44",
+      "id": "q2eLOupmraQ",
+      "snippet": {
+        "publishedAt": "2024-01-08T13:58:08Z",
+        "channelId": "UC8CX0LD98EDXl4UYX1MDCXg",
+        "title": "RECKONING // Episode 8 Cinematic - VALORANT",
+        "description": "The truth... won't stay hidden forever.\n\nBring the fight and make them know your name in Episode 8: DEFIANCE.\n\nMade in partnership with Lightfarm Studios.\n—\nMUSIC\nArtist: YONAKA\nTrack: PREDATOR\nAdditional scoring: Ghostwriter Music\n—\nPlay VALORANT: https://riot.com/3idlntG \n\nFollow us:\nTwitter: https://riot.com/3Q3FBuu\nInstagram: https://riot.com/3K3tEBi\nTikTok: https://riot.com/44TSg7K \n\n#VALORANT #RIOTGAMES #DEFIANCE",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/q2eLOupmraQ/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/q2eLOupmraQ/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/q2eLOupmraQ/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          },
+          "standard": {
+            "url": "https://i.ytimg.com/vi/q2eLOupmraQ/sddefault.jpg",
+            "width": 640,
+            "height": 480
+          },
+          "maxres": {
+            "url": "https://i.ytimg.com/vi/q2eLOupmraQ/maxresdefault.jpg",
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "channelTitle": "VALORANT",
+        "tags": [
+          "VALORANT",
+          "VAL",
+          "fps",
+          "shooters",
+          "tactical",
+          "launch",
+          "agent",
+          "agents",
+          "episode",
+          "ep",
+          "viii",
+          "act",
+          "trailer",
+          "cinematic",
+          "cg",
+          "video",
+          "teaser",
+          "new",
+          "story",
+          "narrative",
+          "reckoning",
+          "defiance",
+          "cypher",
+          "iso",
+          "sentinel",
+          "casablanca",
+          "morocco",
+          "jakarta",
+          "indonesia",
+          "sova",
+          "initiator",
+          "omen",
+          "controller",
+          "ghost",
+          "outlaw",
+          "out",
+          "law",
+          "weapon",
+          "twin",
+          "double",
+          "barrel",
+          "sniper",
+          "rifle",
+          "shrouded",
+          "step",
+          "viper",
+          "radianite",
+          "spycam",
+          "trapwire",
+          "neural",
+          "theft",
+          "owl",
+          "drone",
+          "recon",
+          "bolt",
+          "dart",
+          "paranoia",
+          "operator",
+          "hunters",
+          "fury",
+          "from",
+          "the",
+          "shadows"
+        ],
+        "categoryId": "20",
+        "liveBroadcastContent": "none",
+        "defaultLanguage": "en",
+        "localized": {
+          "title": "RECKONING // Episode 8 Cinematic - VALORANT",
+          "description": "The truth... won't stay hidden forever.\n\nBring the fight and make them know your name in Episode 8: DEFIANCE.\n\nMade in partnership with Lightfarm Studios.\n—\nMUSIC\nArtist: YONAKA\nTrack: PREDATOR\nAdditional scoring: Ghostwriter Music\n—\nPlay VALORANT: https://riot.com/3idlntG \n\nFollow us:\nTwitter: https://riot.com/3Q3FBuu\nInstagram: https://riot.com/3K3tEBi\nTikTok: https://riot.com/44TSg7K \n\n#VALORANT #RIOTGAMES #DEFIANCE"
+        },
+        "defaultAudioLanguage": "en-US"
+      },
+      "statistics": {
+        "viewCount": "1910867",
+        "likeCount": "114795",
+        "favoriteCount": "0",
+        "commentCount": "5172"
+      }
+    }
+  ],
+  "pageInfo": {
+    "totalResults": 1,
+    "resultsPerPage": 1
+  }
+}
